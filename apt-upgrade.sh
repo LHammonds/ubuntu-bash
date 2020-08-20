@@ -1,11 +1,11 @@
 #!/bin/bash
 #############################################################
 ## Name          : apt-upgrade.sh
-## Version       : 1.0
-## Date          : 2012-06-01
+## Version       : 1.1
+## Date          : 2013-01-08
 ## Author        : LHammonds
 ## Purpose       : Keep system updated (rather than use unattended-upgrades)
-## Compatibility : Verified on Ubuntu Server 12.04 LTS
+## Compatibility : Verified on Ubuntu Server 12.04-14.04 LTS
 ## Requirements  : Sendemail, run as root
 ## Run Frequency : Recommend once per day.
 ## Parameters    : None
@@ -20,14 +20,15 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- -----------------------
 ## 2012-06-01 1.0 LTH Created script.
+## 2013-01-08 1.1 LTH Allow visible status output if run manually.
 #############################################################
 
 ## Import standard variables and functions. ##
 source /var/scripts/common/standard.conf
 
 ## Define local variables.
-LOGFILE="${LOGDIR}/apt-upgrade.log"
-LOCKFILE="${TEMPDIR}/apt-upgrade.lock"
+LOGFILE="${LOGDIR}/${COMPANY}-apt-upgrade.log"
+LOCKFILE="${TEMPDIR}/${COMPANY}-apt-upgrade.lock"
 ErrorFlag=0
 ReturnCode=0
 APTCMD="$(which aptitude)"
@@ -42,6 +43,8 @@ function f_cleanup()
     ## Remove lock file so subsequent jobs can run.
     rm ${LOCKFILE} 1>/dev/null 2>&1
   fi
+  ## Temporarily pause script in case user is watching output.
+  sleep 2
   exit ${ErrorFlag}
 }
 
@@ -49,6 +52,7 @@ function f_cleanup()
 ##           MAIN PROGRAM            ##
 #######################################
 
+clear
 if [ -f ${LOCKFILE} ]; then
   # Lock file detected.  Abort script.
   echo "** Script aborted **"
@@ -69,15 +73,15 @@ if [ "$(id -u)" != "0" ]; then
   f_cleanup
 fi
 
-echo "`date +%Y-%m-%d_%H:%M:%S` - Begin script." >> ${LOGFILE}
-echo "`date +%Y-%m-%d_%H:%M:%S` --- Aptitude Update" >> ${LOGFILE}
+echo "`date +%Y-%m-%d_%H:%M:%S` - Begin script." | tee -a ${LOGFILE}
+echo "`date +%Y-%m-%d_%H:%M:%S` --- Aptitude Update" | tee -a ${LOGFILE}
 ${APTCMD} update > /dev/null 2>&1
 ReturnCode=$?
 if [[ "${ReturnCode}" -gt 0 ]]; then
   ErrorFlag=4
   f_cleanup
 fi
-echo "`date +%Y-%m-%d_%H:%M:%S` --- Aptitude Safe-Upgrade" >> ${LOGFILE}
+echo "`date +%Y-%m-%d_%H:%M:%S` --- Aptitude Safe-Upgrade" | tee -a ${LOGFILE}
 echo "--------------------------------------------------" >> ${LOGFILE}
 ${APTCMD} safe-upgrade --assume-yes --target-release `lsb_release -cs`-security >> ${LOGFILE} 2>&1
 ReturnCode=$?
@@ -86,7 +90,7 @@ if [[ "${ReturnCode}" -gt 0 ]]; then
   f_cleanup
 fi
 echo "--------------------------------------------------" >> ${LOGFILE}
-echo "`date +%Y-%m-%d_%H:%M:%S` --- Aptitude Autoclean" >> ${LOGFILE}
+echo "`date +%Y-%m-%d_%H:%M:%S` --- Aptitude Autoclean" | tee -a ${LOGFILE}
 echo "--------------------------------------------------" >> ${LOGFILE}
 ${APTCMD} autoclean >> ${LOGFILE} 2>&1
 ReturnCode=$?
@@ -95,7 +99,7 @@ if [[ "${ReturnCode}" -gt 0 ]]; then
   f_cleanup
 fi
 echo "--------------------------------------------------" >> ${LOGFILE}
-echo "`date +%Y-%m-%d_%H:%M:%S` - End script." >> ${LOGFILE}
+echo "`date +%Y-%m-%d_%H:%M:%S` - End script." | tee -a ${LOGFILE}
 
 ## Perform cleanup routine.
 f_cleanup
