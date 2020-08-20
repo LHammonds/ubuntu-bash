@@ -1,0 +1,50 @@
+#############################################################
+## Name    : Crontab.root
+## Author  : LHammonds
+## Version : 1.0
+## Date    : 2012-05-20
+## Purpose : Crontab Schedule for root user
+###################### CHANGE LOG ###########################
+## DATE       VER WHO WHAT WAS CHANGED
+## ---------- --- --- ---------------------------------------
+## 2012-05-20 1.0 LTH Created schedule.
+#############################################################
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# Crontab SYNTAX:
+#       __________ Minute (0-59)
+#      / _________ Hour (0-23)
+#     / /  _______ Day Of Month (1-31)
+#    / /  /   ____ MONth (1-12)
+#   / /  /   /   _ Day Of Week (0-7) (Sun = 0 or 7)
+#  / /  /   /   /  -------------------------------------------------------------
+# m h dom mon dow  command <arguments> > /dev/null 2>&1
+#
+# Adjust the time clock
+#
+0 1-23 * * * /usr/sbin/ntpdate ntp.ubuntu.com > /dev/null 2>&1
+#
+# Backup MySQL Server
+#
+0 23 * * * /var/scripts/prod/db-backup.sh > /dev/null 2>&1
+#
+# Backup MySQL Database On Demand
+#
+0-59 * * * * /var/scripts/prod/db-ondemand-backup.sh > /dev/null 2>&1
+#
+# Daily checks for available space
+#
+0 1 * * * /var/scripts/prod/check-storage.sh root 500 100 > /dev/null 2>&1
+15 1 * * * /var/scripts/prod/check-storage.sh home 100 50 > /dev/null 2>&1
+30 1 * * * /var/scripts/prod/check-storage.sh tmp 100 50 > /dev/null 2>&1
+45 1 * * * /var/scripts/prod/check-storage.sh usr 100 50 > /dev/null 2>&1
+0 2 * * * /var/scripts/prod/check-storage.sh var 100 50 > /dev/null 2>&1
+15 2 * * * /var/scripts/prod/check-storage.sh srv 100 50 > /dev/null 2>&1
+30 2 * * * /var/scripts/prod/check-storage.sh opt 100 50 > /dev/null 2>&1
+45 2 * * * /var/scripts/prod/check-storage.sh bak 100 50 > /dev/null 2>&1
+#
+# Daily software upgrade check
+#
+0 3 * * * /var/scripts/prod/apt-upgrade.sh > /dev/null 2>&1
