@@ -1,11 +1,11 @@
 #!/bin/bash
 #############################################################
 ## Name          : check-storage.sh
-## Version       : 1.0
-## Date          : 2012-05-11
+## Version       : 1.1
+## Date          : 2014-04-19
 ## Author        : LHammonds
 ## Purpose       : Check available space for a file system and expand if necessary.
-## Compatibility : Verified on Ubuntu Server 12.04 LTS
+## Compatibility : Verified on Ubuntu Server 12.04-14.04 LTS
 ## Requirements  : None
 ## Run Frequency : Recommend once per day for each FS to monitor.
 ## Parameters    :
@@ -24,21 +24,22 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- -----------------------
 ## 2012-05-11 1.0 LTH Created script.
+## 2014-04-19 1.1 LTH Added company prefix to log files.
 #############################################################
- 
+
 ## Import standard variables and functions. ##
 source /var/scripts/common/standard.conf
- 
+
 ## Define local variables.
-LOGFILE="${LOGDIR}/check-storage.log"
-LOCKFILE="${TEMPDIR}/check-storage.lock"
+LOGFILE="${LOGDIR}/${COMPANY}-check-storage.log"
+LOCKFILE="${TEMPDIR}/${COMPANY}-check-storage.lock"
 ErrorFlag=0
 ReturnCode=0
- 
+
 #######################################
 ##            FUNCTIONS              ##
 #######################################
- 
+
 function f_cleanup()
 {
   if [ -f ${LOCKFILE} ];then
@@ -47,13 +48,13 @@ function f_cleanup()
   fi
   exit ${ErrorFlag}
 }
- 
+
 function f_showhelp()
 {
   echo -e "\nUsage : ${SCRIPTNAME} FileSystemName ThresholdSizeInMB AmountToIncreaseByInMB\n"
   echo -e "\nExample: ${SCRIPTNAME} var 50 50\n"
 }
- 
+
 function f_auto-increment()
 {
   let RoomInLV=${LVSize}-${FSSize}
@@ -72,11 +73,11 @@ function f_auto-increment()
   fi
   return 0
 }
- 
+
 #######################################
 ##           MAIN PROGRAM            ##
 #######################################
- 
+
 if [ -f ${LOCKFILE} ]; then
   # Lock file detected.  Abort script.
   echo "Check space script aborted"
@@ -88,7 +89,7 @@ if [ -f ${LOCKFILE} ]; then
 else
   echo "`date +%Y-%m-%d_%H:%M:%S` ${SCRIPTNAME}" > ${LOCKFILE}
 fi
- 
+
 ## Requirement Check: Script must run as root user.
 if [ "$(id -u)" != "0" ]; then
   ## FATAL ERROR DETECTED: Document problem and terminate script.
@@ -97,7 +98,7 @@ if [ "$(id -u)" != "0" ]; then
   ErrorFlag=32
   f_cleanup
 fi
- 
+
 ## Check existance of required command-line parameters.
 case "$1" in
   "")
@@ -144,7 +145,7 @@ case "$3" in
     FSIncreaseBy=$3
     ;;
 esac
- 
+
 ## Check validity of File System name.
 case "${FSName}" in
   "root")
@@ -186,7 +187,7 @@ case "${FSName}" in
     f_cleanup
     ;;
 esac
- 
+
 ## Check validity of threshold value.
 test ${FSThreshold} -eq 0 1>/dev/null 2>&1
 if [[ $? -eq 2 ]]; then
@@ -196,7 +197,7 @@ if [[ $? -eq 2 ]]; then
   ErrorFlag=2
   f_cleanup
 fi
- 
+
 ## Check validity of increment value.
 test ${FSIncreaseBy} -eq 0 1>/dev/null 2>&1
 if [[ $? -eq 2 ]]; then
@@ -206,19 +207,19 @@ if [[ $? -eq 2 ]]; then
   ErrorFlag=2
   f_cleanup
 fi
- 
+
 ## Get available space for the file system.
 FSAvailable="`df --block-size=m ${FSMap} | awk '{ print $4 }' | tail -n 1 | sed 's/M//'`"
- 
+
 ## Get the current size of the File System.
 FSSize="`df --block-size=m ${FSMap} | awk '{ print $2 }' | tail -n 1 | sed 's/M//'`"
- 
+
 ## Get the current size of the Logical Volume for the File System
 LVSize="`lvs --noheadings --nosuffix --units=m ${FSMap} | awk '{ print $4}' | sed 's/[.].*//'`"
- 
+
 ## Calculate the new size of the FS in case we need it.
 let NewFSSize=${FSSize}+${FSIncreaseBy}
- 
+
 if [[ ${FSAvailable} -lt ${FSThreshold} ]]; then
   echo "`date +%Y-%m-%d_%H:%M:%S` - Starting expansion of ${FSVol}" | tee -a ${LOGFILE}
   echo "`date +%Y-%m-%d_%H:%M:%S` --- LVSize=${LVSize}MB, FSSize=${FSSize}MB, FSAvail=${FSAvailable}MB, FSThreshold=${FSThreshold}MB, FSIncreaseBy=${FSIncreaseBy}MB" | tee -a ${LOGFILE}
@@ -244,6 +245,6 @@ if [[ ${FSAvailable} -lt ${FSThreshold} ]]; then
 else
   echo "`date +%Y-%m-%d_%H:%M:%S` - ${FSVol} ${FSAvailable}M>${FSThreshold}M No action required." | tee -a ${LOGFILE}
 fi
- 
+
 ## Perform cleanup routine.
 f_cleanup
