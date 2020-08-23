@@ -1,10 +1,10 @@
 #!/bin/bash
 #############################################################
 ## Name          : opm.sh
-## Version       : 1.1
-## Date          : 2017-03-17
+## Version       : 1.2
+## Date          : 2018-04-19
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04 - 16.04 LTS
+## Compatibility : Ubuntu Server 12.04 thru 18.04 LTS
 ## Requirements  : dialog (apt-get dialog) and root privileges
 ## Purpose       : Display menu to control the server
 ## Run Frequency : As needed
@@ -15,15 +15,16 @@
 ## ---------- --- --- ---------------------------------------
 ## 2013-01-07 1.0 LTH Created script.
 ## 2017-03-17 1.1 LTH Changed variables to CamelCase.
+## 2018-04-19 1.2 LTH Various minor changes.
 #############################################################
 
 ## Store menu options selected by the user.
 TempDir="/tmp"
 ScriptDir="/var/scripts/prod"
-Input="${TempDir}/opm-input.$$"
+InputFile="${TempDir}/opm-input.$$"
 
 ## Storage file for displaying cal and date command output.
-Output="${TempDir}/opm-output.$$"
+OutputFile="${TempDir}/opm-output.$$"
 
 ## Get text editor or fall back to vi_editor.
 vi_editor=${EDITOR-vi}
@@ -37,7 +38,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 ## Trap and delete temp files.
-trap "rm $Output; rm $Input; exit" SIGHUP SIGINT SIGTERM
+trap "rm $OutputFile; rm $InputFile; exit" SIGHUP SIGINT SIGTERM
 
 function f_display_output(){
   ## Purpose - display output using msgbox
@@ -47,14 +48,14 @@ function f_display_output(){
   local h=${1-10}     ## box height default 10
   local w=${2-41}     ## box width default 41
   local t=${3-Output} ## box title
-  dialog --backtitle "Operator Menu for $(hostname -f)" --title "${t}" --clear --msgbox "$(<$Output)" ${h} ${w}
-}
+  dialog --backtitle "Operator Menu for $(hostname -f)" --title "${t}" --clear --msgbox "$(<$OutputFile)" ${h} ${w}
+} ## f_display_output
 
 function f_showdate(){
   ## Purpose - display current system date & time
-  echo "Today is $(date) @ $(hostname -f)." >$Output
+  echo "Today is $(date) @ $(hostname -f)." >$OutputFile
   f_display_output 6 60 "Date and Time"
-}
+} ## f_showdate
 
 function f_checkdisk(){
   ## Purpose: Display disk status.
@@ -63,7 +64,7 @@ function f_checkdisk(){
   df --block-size=M
   echo ""
   read -p "Press [Enter] key to continue..."
-}
+} ## f_checkdisk
 
 ## Loop the menu display.
 while true
@@ -80,23 +81,25 @@ do
   CheckDisk "Check Disk Status" \
   MEMCheck "Look at running processes" \
   ServiceRestart "Stop/Start Main Services" \
-  Reboot "Cleanly reboot server" \
-  Date/time "Displays date and time" 2>"${Input}"
+  RebootServer "Cleanly reboot server" \
+  PoweroffServer "Cleanly Power-off server" \
+  Date/time "Displays date and time" 2>"${InputFile}"
 
-  menuitem=$(<"${Input}")
+  menuitem=$(<"${InputFile}")
 
   ## Make decision.
   case $menuitem in
     OSUpdate) ${ScriptDir}/apt-upgrade.sh;;
     CheckDisk) f_checkdisk;;
     MEMCheck) htop;;
-    Reboot) ${ScriptDir}/reboot.sh;;
     ServiceRestart) ${ScriptDir}/servicerestart.sh;;
+    RebootServer) ${ScriptDir}/reboot.sh;;
+    PoweroffServer) ${ScriptDir}/shutdown.sh;;
     Date/time) f_showdate;;
     Exit) clear; echo "Clean menu exit."; break;;
   esac
 done
 
 ## Delete temp files.
-[ -f $Output ] && rm $Output
-[ -f $Input ] && rm $Input
+[ -f $OutputFile ] && rm $OutputFile
+[ -f $InputFile ] && rm $InputFile
