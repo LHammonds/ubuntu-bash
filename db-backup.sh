@@ -1,14 +1,14 @@
 #!/bin/bash
-#############################################
+#############################################################
 ## Name          : db-backup.sh
 ## Version       : 1.5
 ## Date          : 2017-12-27
 ## Author        : LHammonds
 ## Purpose       : Complete backup of MySQL database.
 ## Compatibility : Verified on to work on:
-##                  - Ubuntu Server 10.04 LTS - 16.04 LTS
+##                  - Ubuntu Server 10.04 LTS - 18.04 LTS
 ##                  - MySQL 5.1.41 - 5.5.22
-##                  - MariaDB 10.1.22
+##                  - MariaDB 10.1.22 - 10.3.8
 ## Requirements  : p7zip-full (if ArchiveMethod=tar.7z), sendemail
 ## Run Frequency : Once per day after hours or as needed (will not shutdown service)
 ## Exit Codes    : (if multiple errors, value is the addition of codes)
@@ -18,16 +18,16 @@
 ##    4 = archive purge failure
 ##    8 = configuration error
 ##   16 = mount warning
-################ CHANGE LOG #################
-## DATE       WHO WHAT WAS CHANGED
-## ---------- --- ----------------------------
-## 2011-12-19 LTH Created script.
-## 2012-01-09 LTH Bugfix - f_PurgeOldestArchive
-## 2017-04-13 LTH Corrected variable casing.
-## 2017-04-24 LTH All databases minus an exception list.
-## 2017-09-01 LTH Handle folder creation upon 1st time run.
-## 2017-12-27 LTH Added directory/file permission setting.
-#############################################
+###################### CHANGE LOG ###########################
+## DATE       VER WHO WHAT WAS CHANGED
+## ---------- --- --- ---------------------------------------
+## 2011-12-19 1.0 LTH Created script.
+## 2012-01-09 1.1 LTH Bugfix - f_PurgeOldestArchive
+## 2017-04-13 1.2 LTH Corrected variable casing.
+## 2017-04-24 1.3 LTH All databases minus an exception list.
+## 2017-09-01 1.4 LTH Handle folder creation upon 1st time run.
+## 2017-12-27 1.5 LTH Added directory/file permission setting.
+#############################################################
 
 ## Import common variables and functions. ##
 source /var/scripts/common/standard.conf
