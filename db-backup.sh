@@ -4,11 +4,11 @@
 ## Version       : 1.5
 ## Date          : 2017-12-27
 ## Author        : LHammonds
-## Purpose       : Complete backup of MySQL database.
+## Purpose       : Complete backup of MariaDB/MySQL database.
 ## Compatibility : Verified on to work on:
 ##                  - Ubuntu Server 10.04 LTS - 18.04 LTS
 ##                  - MySQL 5.1.41 - 5.5.22
-##                  - MariaDB 10.1.22 - 10.3.8
+##                  - MariaDB 10.1.22 - 10.4.8
 ## Requirements  : p7zip-full (if ArchiveMethod=tar.7z), sendemail
 ## Run Frequency : Once per day after hours or as needed (will not shutdown service)
 ## Exit Codes    : (if multiple errors, value is the addition of codes)
@@ -32,8 +32,8 @@
 ## Import common variables and functions. ##
 source /var/scripts/common/standard.conf
 
-LogFile="${LogDir}/mysql-backup.log"
-LockFile="${TempDir}/mysql-backup.lock"
+LogFile="${LogDir}/db-backup.log"
+LockFile="${TempDir}/db-backup.lock"
 TargetDir="${BackupDir}/mysql"
 MySQLDir="/opt/mysql"
 DatabasesToExclude="JunkDB1 JunkDB2"
