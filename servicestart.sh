@@ -3,7 +3,7 @@
 ## Version       : 1.1
 ## Date          : 2018-04-19
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 16.04 thru 18.04 LTS
+## Compatibility : Ubuntu Server 16.04 thru 20.04 LTS
 ## Requirements  : None
 ## Purpose       : Start primary services.
 ## Run Frequency : As needed
