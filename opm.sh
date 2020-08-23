@@ -1,10 +1,10 @@
 #!/bin/bash
 #############################################################
 ## Name          : opm.sh
-## Version       : 1.0
-## Date          : 2013-01-07
+## Version       : 1.1
+## Date          : 2017-03-17
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04.1 LTS
+## Compatibility : Ubuntu Server 12.04 - 16.04 LTS
 ## Requirements  : dialog (apt-get dialog) and root privileges
 ## Purpose       : Display menu to control the server
 ## Run Frequency : As needed
@@ -14,15 +14,16 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
 ## 2013-01-07 1.0 LTH Created script.
+## 2017-03-17 1.1 LTH Changed variables to CamelCase.
 #############################################################
 
 ## Store menu options selected by the user.
-TEMPDIR="/tmp"
-SCRIPTDIR="/var/scripts/prod"
-INPUT="${TEMPDIR}/opm-input.$$"
+TempDir="/tmp"
+ScriptDir="/var/scripts/prod"
+Input="${TempDir}/opm-input.$$"
 
 ## Storage file for displaying cal and date command output.
-OUTPUT="${TEMPDIR}/opm-output.$$"
+Output="${TempDir}/opm-output.$$"
 
 ## Get text editor or fall back to vi_editor.
 vi_editor=${EDITOR-vi}
@@ -36,7 +37,8 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 ## Trap and delete temp files.
-trap "rm $OUTPUT; rm $INPUT; exit" SIGHUP SIGINT SIGTERM
+trap "rm $Output; rm $Input; exit" SIGHUP SIGINT SIGTERM
+
 function f_display_output(){
   ## Purpose - display output using msgbox
   ##  $1 -> set msgbox height
@@ -45,12 +47,12 @@ function f_display_output(){
   local h=${1-10}     ## box height default 10
   local w=${2-41}     ## box width default 41
   local t=${3-Output} ## box title
-  dialog --backtitle "Operator Menu for $(hostname -f)" --title "${t}" --clear --msgbox "$(<$OUTPUT)" ${h} ${w}
+  dialog --backtitle "Operator Menu for $(hostname -f)" --title "${t}" --clear --msgbox "$(<$Output)" ${h} ${w}
 }
 
 function f_showdate(){
   ## Purpose - display current system date & time
-  echo "Today is $(date) @ $(hostname -f)." >$OUTPUT
+  echo "Today is $(date) @ $(hostname -f)." >$Output
   f_display_output 6 60 "Date and Time"
 }
 
@@ -79,22 +81,22 @@ do
   MEMCheck "Look at running processes" \
   ServiceRestart "Stop/Start Main Services" \
   Reboot "Cleanly reboot server" \
-  Date/time "Displays date and time" 2>"${INPUT}"
+  Date/time "Displays date and time" 2>"${Input}"
 
-  menuitem=$(<"${INPUT}")
+  menuitem=$(<"${Input}")
 
   ## Make decision.
   case $menuitem in
-    OSUpdate) ${SCRIPTDIR}/apt-upgrade.sh;;
+    OSUpdate) ${ScriptDir}/apt-upgrade.sh;;
     CheckDisk) f_checkdisk;;
     MEMCheck) htop;;
-    Reboot) ${SCRIPTDIR}/reboot.sh;;
-    ServiceRestart) ${SCRIPTDIR}/servicerestart.sh;;
+    Reboot) ${ScriptDir}/reboot.sh;;
+    ServiceRestart) ${ScriptDir}/servicerestart.sh;;
     Date/time) f_showdate;;
     Exit) clear; echo "Clean menu exit."; break;;
   esac
 done
 
 ## Delete temp files.
-[ -f $OUTPUT ] && rm $OUTPUT
-[ -f $INPUT ] && rm $INPUT
+[ -f $Output ] && rm $Output
+[ -f $Input ] && rm $Input
