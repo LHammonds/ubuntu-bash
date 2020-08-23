@@ -4,7 +4,7 @@
 ## Version       : 1.1
 ## Date          : 2018-03-06
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04-16.04 LTS, NextCloud 12.0.4
+## Compatibility : Ubuntu Server 12.04 - 20.04 LTS, NextCloud 12.0.4
 ## Purpose       : Backup web server while online.
 ## Run Frequency : One or multiple times per day.
 ## Exit Codes    : (if multiple errors, value is the addition of codes)

@@ -5,7 +5,7 @@
 ## Date          : 2017-09-01
 ## Author        : LHammonds
 ## Purpose       : Backup of a single database
-## Compatibility : Verified on Ubuntu Server 10.04 - 18.04 LTS, MySQL 5.1.62 - 5.5.22, MariaDB 10.3.8 - 10.4.8
+## Compatibility : Verified on Ubuntu Server 10.04 - 20.04 LTS, MySQL 5.1.62 - 5.5.22, MariaDB 10.3.8 - 10.4.8
 ## Requirements  : p7zip-full (if ARCHIVEMETHOD=tar.7z), sendemail
 ## Run Frequency : As needed
 ## Exit Codes    : (if multiple errors, value is the addition of codes)

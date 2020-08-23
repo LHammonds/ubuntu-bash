@@ -4,7 +4,7 @@
 ## Version       : 1.2
 ## Date          : 2018-04-19
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04 thru 18.04 LTS
+## Compatibility : Ubuntu Server 12.04 - 20.04 LTS
 ## Requirements  : dialog (apt-get dialog) and root privileges
 ## Purpose       : Display menu to control the server
 ## Run Frequency : As needed

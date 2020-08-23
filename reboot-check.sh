@@ -4,7 +4,7 @@
 ## Version       : 1.2
 ## Date          : 2019-10-01
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 16.04.3 - 18.04.3 LTS
+## Compatibility : Ubuntu Server 16.04.3 - 20.04 LTS
 ## Requirements  : Run as root
 ## Purpose       : Stop services and reboot server but only if necessary.
 ## Run Frequency : Daily after update.

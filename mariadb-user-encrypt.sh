@@ -1,24 +1,24 @@
 #!/bin/bash
 #############################################################
-## Name : mariadb-user-encrypt.sh
-## Version : 1.0
-## Date : 2018-04-16
-## Author : LHammonds
-## Purpose : Export REVOKE,DROP,GRANT statements for all users.
-##         : Encrypt the files for storage
-## How to Decrypt :
+## Name          : mariadb-user-encrypt.sh
+## Version       : 1.0
+## Date          : 2018-04-16
+## Author        : LHammonds
+## Purpose       : Export REVOKE,DROP,GRANT statements for all users.
+##               : Encrypt the files for storage
+## How to Decrypt:
 ##   gpg --cipher-algo aes256 --output decrypted-target.txt /
 ##       --passphrase-file /etc/gpg.conf --batch --yes /
 ##       --no-tty --decrypt encrypted-file.enc
-## Compatibility : Verified on Ubuntu Server 16.04 thru 18.04 LTS
+## Compatibility : Verified on Ubuntu Server 16.04 - 20.04 LTS
 ##               : Verified on MariaDB 10.1.32 thru 10.4.8
-## Requirements : percona-toolkit (tested using version 3.0.6)
-##              : gpgv (tested using version 2.2.4)
+## Requirements  : percona-toolkit (tested using version 3.0.6)
+##               : gpgv (tested using version 2.2.4)
 ## Run Frequency : Often as desired.
-## NOTE: Grant files contain the grant commands only.
-##       Revoke files contain the revoke, drop and grant commands together.
-## Parameters : None
-## Exit Codes :
+## NOTE          : Grant files contain the grant commands only. Revoke files
+##                 contain the revoke, drop and grant commands together.
+## Parameters    : None
+## Exit Codes    :
 ## 0  = Success
 ## 1  = ERROR: Lock file detected
 ## 2  = ERROR: Must be root user

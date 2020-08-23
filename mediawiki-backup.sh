@@ -4,7 +4,7 @@
 ## Version       : 1.2
 ## Date          : 2017-08-22
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04-16.04.3 LTS
+## Compatibility : Ubuntu Server 12.04 - 20.04 LTS
 ## Requirements  : Requires sharing SSH IDs on this and remote server.
 ## Purpose       : Backup web server while online.
 ## Run Frequency : One or multiple times per day.

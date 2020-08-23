@@ -5,8 +5,8 @@
 ## Date : 2020-01-01
 ## Author : LHammonds
 ## Purpose : Backup partitions
-## Compatibility : Verified on Ubuntu Server 12.04 thru 18.04 LTS
-##                 Verified with fsarchiver 0.8.4)
+## Compatibility : Verified on Ubuntu Server 12.04 - 20.04 LTS
+##                 Verified with fsarchiver 0.8.4
 ## Requirements : Fsarchiver, Sendemail, run as root
 ## Run Frequency : Once per day or as often as desired.
 ## Parameters : None
