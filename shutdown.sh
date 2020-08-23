@@ -4,7 +4,7 @@
 ## Version       : 1.1
 ## Date          : 2018-05-08
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 16.04 thru 18.04 LTS
+## Compatibility : Ubuntu Server 16.04 thru 20.04 LTS
 ## Requirements  : Run as root
 ## Purpose       : Notify logged in users, stop services and power off server.
 ## Run Frequency : As needed
