@@ -4,7 +4,7 @@
 ## Version       : 1.1
 ## Date          : 2017-04-13
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04 - 18.04 LTS
+## Compatibility : Ubuntu Server 12.04 - 20.04 LTS
 ## Requirements  : Run as root
 ## Purpose       : Restore and enable firewall.
 ## Run Frequency : As needed
