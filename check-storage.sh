@@ -5,7 +5,7 @@
 ## Date          : 2017-03-17
 ## Author        : LHammonds
 ## Purpose       : Check available space for a file system and expand if necessary.
-## Compatibility : Verified on Ubuntu Server 12.04 - 16.04 LTS
+## Compatibility : Verified on Ubuntu Server 12.04 - 18.04 LTS
 ## Requirements  : None
 ## Run Frequency : Recommend once per day for each FS to monitor.
 ## Parameters    :
