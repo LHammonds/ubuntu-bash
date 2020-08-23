@@ -4,7 +4,7 @@
 ## Version       : 1.3
 ## Date          : 2020-05-01
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 10.04 thru 18.04 LTS
+## Compatibility : Ubuntu Server 10.04 thru 20.04 LTS
 ## Purpose       : Toggle the mount status of a pre-configured backup mount.
 ## Run Frequency : Manual as needed.
 ## Exit Codes    :
