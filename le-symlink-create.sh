@@ -1,14 +1,14 @@
 #!/bin/bash
 #############################################################
-## Name : le-symlink-create.sh
-## Version : 1.0
-## Date : 2020-05-19
-## Author : LHammonds
-## Purpose : Recreate Let's Encrypt symlinks to certificates after a server migration.
-## Compatibility : Verified on Ubuntu Server 18.04 thru 20.04 LTS
+## Name          : le-symlink-create.sh
+## Version       : 1.0
+## Date          : 2020-05-19
+## Author        : LHammonds
+## Purpose       : Recreate Let's Encrypt symlinks to certificates after a server migration.
+## Compatibility : Verified on Ubuntu Server 18.04 - 20.04 LTS
 ## Run Frequency : Once after migration to new machine.
-## Parameters : None
-## Exit Codes : None
+## Parameters    : None
+## Exit Codes    : None
 ###################### CHANGE LOG ###########################
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
