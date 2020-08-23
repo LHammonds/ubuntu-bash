@@ -1,10 +1,10 @@
 #!/bin/bash
 #############################################################
 ## Name          : reboot-check.sh
-## Version       : 1.0
-## Date          : 2017-12-13
+## Version       : 1.2
+## Date          : 2019-10-01
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04
+## Compatibility : Ubuntu Server 16.04.3 - 18.04.3 LTS
 ## Requirements  : Run as root
 ## Purpose       : Stop services and reboot server but only if necessary.
 ## Run Frequency : Daily after update.
@@ -13,6 +13,8 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
 ## 2017-12-13 1.0 LTH Created script.
+## 2019-09-24 1.1 LTH Added email notification.
+## 2019-10-01 1.2 LTH Added better event logging.
 #############################################################
 
 ## Import standard variables and functions. ##
@@ -29,11 +31,12 @@ if [ "$(id -u)" != "0" ]; then
   exit
 fi
 
+echo "`date +%Y-%m-%d_%H:%M:%S` Current Kernel: `/bin/uname -nr`" | tee -a ${LogFile}
 if [ -f /var/run/reboot-required ]; then
-  echo "`date +%Y-%m-%d_%H:%M:%S` - Reboot required." >> ${LogFile}
+  echo "`date +%Y-%m-%d_%H:%M:%S` - Reboot required." | tee -a ${LogFile}
   cat /var/run/reboot-required.pkgs >> ${LogFile}
   f_sendmail "[INFO] ${Hostname} Reboot Notice" "${Hostname} rebooted at `date +%Y-%m-%d_%H:%M:%S`"
   ${ScriptDir}/prod/reboot.sh
 else
-  echo "No reboot required."
+  echo "`date +%Y-%m-%d_%H:%M:%S` - No reboot required." | tee -a ${LogFile}
 fi
