@@ -22,7 +22,7 @@
 ##   32 = ERROR: Script not run by root user
 ######################## CHANGE LOG #########################
 ## DATE       VER WHO WHAT WAS CHANGED
-## ---------- --- --- -----------------------
+## ---------- --- --- ---------------------------------------
 ## 2012-05-11 1.0 LTH Created script.
 ## 2014-04-19 1.1 LTH Added company prefix to log files.
 ## 2017-03-17 1.2 LTH Changed variables to CamelCase.
