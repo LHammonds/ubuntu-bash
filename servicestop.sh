@@ -1,22 +1,23 @@
-#!/bin/bash
 #############################################################
 ## Name          : servicestop.sh
-## Version       : 1.0
-## Date          : 2013-01-08
+## Version       : 1.1
+## Date          : 2018-04-19
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04 LTS
+## Compatibility : Ubuntu Server 16.04 thru 18.04 LTS
 ## Requirements  : None
-## Purpose       : Cleanly stop primary services.
+## Purpose       : Stop primary services.
 ## Run Frequency : As needed
 ## Exit Codes    : None
 ###################### CHANGE LOG ###########################
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
-## 2013-01-08 1.0 LTH Created script.
+## 2013-01-08 1.0 LTH  Created script.
+## 2018-04-19 1.1 LTH  Replaced service with systemctl.
 #############################################################
-clear
-echo ""
+## NOTE: Configure whatever services you need stopped here.
 echo "Stopping services..."
-#service apache2 stop
-#service mysql stop
+#systemctl stop vsftpd
+#systemctl stop nagios
+#systemctl stop apache2
+#systemctl stop mariadb
 sleep 1
