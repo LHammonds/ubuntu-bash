@@ -1,11 +1,11 @@
 #!/bin/bash
 #############################################################
 ## Name          : apt-upgrade.sh
-## Version       : 1.3
-## Date          : 2017-03-16
+## Version       : 1.4
+## Date          : 2019-09-23
 ## Author        : LHammonds
 ## Purpose       : Keep system updated (rather than use unattended-upgrades)
-## Compatibility : Verified on Ubuntu Server 16.04 LTS
+## Compatibility : Verified on Ubuntu Server 18.04 LTS
 ## Requirements  : Sendemail, run as root
 ## Run Frequency : Recommend once per day.
 ## Parameters    : None
@@ -20,11 +20,12 @@
 ##   64 = ERROR: APT clean Error.
 ######################## CHANGE LOG #########################
 ## DATE       VER WHO WHAT WAS CHANGED
-## ---------- --- --- -----------------------
+## ---------- --- --- ---------------------------------------
 ## 2012-06-01 1.0 LTH Created script.
 ## 2013-01-08 1.1 LTH Allow visible status output if run manually.
 ## 2013-03-11 1.2 LTH Added company prefix to log files.
 ## 2017-03-16 1.3 LTH Made compatible with 16.04 LTS
+## 2019-09-23 1.4 LTH Set to not overwrite existing config file.
 #############################################################
 
 ## Import standard variables and functions. ##
@@ -97,10 +98,19 @@ if [[ "${ReturnCode}" -gt 0 ]]; then
 fi
 echo "`date +%Y-%m-%d_%H:%M:%S` --- Apt-Get Upgrade" | tee -a ${LogFile}
 echo "--------------------------------------------------" >> ${LogFile}
-${AptGetCmd} --assume-yes upgrade >> ${LogFile} 2>&1
+${AptGetCmd} --assume-yes --option Dpkg::Options::="--force-confdef" --option Dpkg::Options::="--force-confold" upgrade >> ${LogFile} 2>&1
 ReturnCode=$?
 if [[ "${ReturnCode}" -gt 0 ]]; then
   ErrorMsg="Apt-Get Upgrade return code of ${ReturnCode}"
+  ErrorFlag=8
+  f_cleanup
+fi
+echo "`date +%Y-%m-%d_%H:%M:%S` --- Apt-Get Dist-Upgrade" | tee -a ${LogFile}
+echo "--------------------------------------------------" >> ${LogFile}
+${AptGetCmd} --assume-yes --option Dpkg::Options::="--force-confdef" --option Dpkg::Options::="--force-confold" dist-upgrade >> ${LogFile} 2>&1
+ReturnCode=$?
+if [[ "${ReturnCode}" -gt 0 ]]; then
+  ErrorMsg="Apt-Get Dist-Upgrade return code of ${ReturnCode}"
   ErrorFlag=8
   f_cleanup
 fi

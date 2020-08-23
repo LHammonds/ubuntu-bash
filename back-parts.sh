@@ -1,11 +1,12 @@
 #!/bin/bash
 #############################################################
 ## Name : back-parts.sh (Backup Partitions)
-## Version : 1.3
-## Date : 2017-10-04
+## Version : 1.4
+## Date : 2020-01-01
 ## Author : LHammonds
 ## Purpose : Backup partitions
-## Compatibility : Verified on Ubuntu Server 12.04 thru 16.04 LTS (fsarchiver 0.6.12)
+## Compatibility : Verified on Ubuntu Server 12.04 thru 18.04 LTS
+##                 Verified with fsarchiver 0.8.4)
 ## Requirements : Fsarchiver, Sendemail, run as root
 ## Run Frequency : Once per day or as often as desired.
 ## Parameters : None
@@ -21,9 +22,10 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
 ## 2013-01-09 1.0 LTH Created script.
-## 2017-03-16 1.1 LTH Changed variables to CamelCase.
+## 2017-03-16 1.1 LTH Updated variable standards.
 ## 2017-08-31 1.2 LTH Added create folder if not exist.
 ## 2017-10-04 1.3 LTH Set file permissions.
+## 2020-01-01 1.4 LTH Remove any prior temp snapshots before starting.
 #############################################################
 
 ## Import standard variables and functions. ##
@@ -288,6 +290,9 @@ if [ -f ${OffsiteTestFile} ]; then
   ErrorFlag=32
   f_cleanup
 fi
+
+## Remove old snapshot from a prior run if it exists.
+lvremove --force ${TempLV} > /dev/null 2>&1
 
 StartTime="$(date +%s)"
 echo "`date +%Y-%m-%d_%H:%M:%S` - Backup started." >> ${LogFile}
