@@ -4,7 +4,7 @@
 ## Version       : 1.1
 ## Date          : 2019-11-13
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 18.04 - 18.04 LTS
+## Compatibility : Ubuntu Server 18.04 - 20.04 LTS
 ## Requirements  : None
 ## Optional      : Parameter #1 = Warning threshold in days.
 ##                 Parameter #2 = Critical threshold in days.
