@@ -1,10 +1,10 @@
 #!/bin/bash
 #############################################################
 ## Name          : reboot.sh
-## Version       : 1.2
-## Date          : 2018-04-19
+## Version       : 1.3
+## Date          : 2020-09-02
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04 thru 20.04 LTS
+## Compatibility : Ubuntu Server 12.04 - 20.04 LTS
 ## Requirements  : Run as root
 ## Purpose       : Stop services and reboot server.
 ## Run Frequency : As needed
@@ -15,6 +15,7 @@
 ## 2013-01-07 1.0 LTH Created script.
 ## 2017-12-18 1.1 LTH Added logging.
 ## 2018-04-19 1.2 LTH Various minor changes.
+## 2020-09-02 1.3 LTH Added broadcast notice to all connected SSH users.
 #############################################################
 
 ## Import standard variables and functions. ##
@@ -34,6 +35,8 @@ fi
 clear
 echo "`date +%Y-%m-%d_%H:%M:%S` - Reboot initiated." | tee -a ${LogFile}
 ${ScriptDir}/prod/servicestop.sh
+## Broadcasting message to any other users logged in via SSH.
+echo "WARNING: Rebooting server. Should be back online in 20 seconds." | wall
 echo "Rebooting..."
 echo "3"
 sleep 1
