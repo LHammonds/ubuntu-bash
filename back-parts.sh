@@ -1,16 +1,16 @@
 #!/bin/bash
 #############################################################
-## Name : back-parts.sh (Backup Partitions)
-## Version : 1.4
-## Date : 2020-01-01
-## Author : LHammonds
-## Purpose : Backup partitions
-## Compatibility : Verified on Ubuntu Server 12.04 thru 18.04 LTS
-##                 Verified with fsarchiver 0.8.4)
-## Requirements : Fsarchiver, Sendemail, run as root
+## Name          : back-parts.sh (Backup Partitions)
+## Version       : 1.4
+## Date          : 2020-01-01
+## Author        : LHammonds
+## Purpose       : Backup partitions
+## Compatibility : Verified on Ubuntu Server 12.04 - 20.04 LTS
+##                 Verified with fsarchiver 0.8.4
+## Requirements  : Fsarchiver, Sendemail, run as root
 ## Run Frequency : Once per day or as often as desired.
-## Parameters : None
-## Exit Codes :
+## Parameters    : None
+## Exit Codes    :
 ## 0  = Success
 ## 1  = ERROR: Lock file detected
 ## 2  = ERROR: Must be root user

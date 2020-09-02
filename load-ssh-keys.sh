@@ -4,7 +4,7 @@
 ## Version       : 1.0
 ## Date          : 2017-02-16
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 16.04 LTS
+## Compatibility : Ubuntu Server 16.04 - 20.04 LTS
 ## Requirements  : Run as root
 ## Purpose       : Load SSH keys into memory which will allow FTP login
 ##                 without prompts. Useful for automated FTP scripts.
@@ -12,7 +12,7 @@
 ## Exit Codes    : None
 ######################## CHANGE LOG #########################
 ## DATE       VER WHO WHAT WAS CHANGED
-## ---------- --- --- -----------------------
+## ---------- --- --- ---------------------------------------
 ## 2017-02-16 1.0 LTH Created script.
 #############################################################
 

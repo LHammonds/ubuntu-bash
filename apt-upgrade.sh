@@ -5,7 +5,7 @@
 ## Date          : 2019-09-23
 ## Author        : LHammonds
 ## Purpose       : Keep system updated (rather than use unattended-upgrades)
-## Compatibility : Verified on Ubuntu Server 18.04 LTS
+## Compatibility : Verified on Ubuntu Server 18.04 - 20.04 LTS
 ## Requirements  : Sendemail, run as root
 ## Run Frequency : Recommend once per day.
 ## Parameters    : None
