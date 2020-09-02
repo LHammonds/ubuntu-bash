@@ -4,7 +4,7 @@
 ## Version       : 1.1
 ## Date          : 2018-03-29
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 16.04 LTS, NextCloud 13.0.1
+## Compatibility : Ubuntu Server 16.04 - 20.04 LTS, NextCloud 13.0.1 - 18.04
 ## Purpose       : Ensures ownership and permissions are set correctly.
 ## Run Frequency : Manual as needed or via crontab schedule.
 ## NOTE: These settings will prevent the updater from working.
@@ -12,7 +12,7 @@
 ## work is to change the rootuser to be the same as webuser.
 ######################## CHANGE LOG #########################
 ## DATE       VER WHO WHAT WAS CHANGED
-## ---------- --- --- -----------------------
+## ---------- --- --- ---------------------------------------
 ## 2018-01-11 1.0 LTH Created script.
 ## 2018-03-29 1.1 LTH Improvements.
 #############################################################

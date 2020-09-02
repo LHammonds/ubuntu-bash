@@ -1,22 +1,23 @@
-#!/bin/bash
 #############################################################
 ## Name          : servicestart.sh
-## Version       : 1.0
-## Date          : 2013-01-08
+## Version       : 1.1
+## Date          : 2018-04-19
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04 LTS
+## Compatibility : Ubuntu Server 16.04 thru 20.04 LTS
 ## Requirements  : None
-## Purpose       : Cleanly start primary services.
+## Purpose       : Start primary services.
 ## Run Frequency : As needed
 ## Exit Codes    : None
 ###################### CHANGE LOG ###########################
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
-## 2013-01-08 1.0 LTH Created script.
+## 2018-04-19 1.0 LTH  Created script.
+## 2018-04-19 1.1 LTH  Replaced service with systemctl.
 #############################################################
-clear
-echo ""
+## NOTE: Add whatever services you need started here.
 echo "Starting services..."
-#service mysql start
-#service apache2 start
+#systemctl start mariadb
+#systemctl start apache2
+#systemctl start nagios
+#systemctl start vsftpd
 sleep 1
