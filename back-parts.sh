@@ -1,23 +1,22 @@
 #!/bin/bash
 #############################################################
-## Name          : back-parts.sh (Backup Partitions)
-## Version       : 1.4
-## Date          : 2020-01-01
-## Author        : LHammonds
-## Purpose       : Backup partitions
-## Compatibility : Verified on Ubuntu Server 12.04 - 20.04 LTS
-##                 Verified with fsarchiver 0.8.4
-## Requirements  : Fsarchiver, Sendemail, run as root
+## Name : back-parts.sh (Backup Partitions)
+## Version : 1.5
+## Date : 2020-05-27
+## Author : LHammonds
+## Purpose : Backup partitions
+## Compatibility : Verified on Ubuntu Server 12.04 thru 20.04 LTS
+##                 Verified with fsarchiver 0.8.4)
+## Requirements : Fsarchiver, Sendemail, run as root
 ## Run Frequency : Once per day or as often as desired.
-## Parameters    : None
-## Exit Codes    :
+## Parameters : None
+## Exit Codes :
 ## 0  = Success
 ## 1  = ERROR: Lock file detected
 ## 2  = ERROR: Must be root user
 ## 4  = ERROR: Missing software
 ## 8  = ERROR: LVM problems
 ## 16 = ERROR: File creation problems
-## 32 = ERROR: Mount/Unmount problems
 ###################### CHANGE LOG ###########################
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
@@ -26,6 +25,8 @@
 ## 2017-08-31 1.2 LTH Added create folder if not exist.
 ## 2017-10-04 1.3 LTH Set file permissions.
 ## 2020-01-01 1.4 LTH Remove any prior temp snapshots before starting.
+## 2020-05-27 1.5 LTH Removed offsite copy section. The offsite
+##                    location will pull files for better security.
 #############################################################
 
 ## Import standard variables and functions. ##
@@ -34,6 +35,7 @@ source /var/scripts/common/standard.conf
 ## Define local variables.
 LogFile="${LogDir}/${Company}-back-parts.log"
 LockFile="${TempDir}/${Company}-back-parts.lock"
+TargetDir="${BackupDir}/partitions"
 LVG="/dev/LVG"
 TempLV="${LVG}/tempsnap"
 MaxTempVolSize=1G
@@ -64,14 +66,14 @@ function f_archive_fs()
   FSPath=$2
 
   ## Purge old backup files.
-  if [ -f ${BackupDir}/${Hostname}-${FSName}.fsa ]; then
-    rm ${BackupDir}/${Hostname}-${FSName}.fsa
+  if [ -f ${TargetDir}/${Hostname}-${FSName}.fsa ]; then
+    rm ${TargetDir}/${Hostname}-${FSName}.fsa
   fi
-  if [ -f ${BackupDir}/${Hostname}-${FSName}.txt ]; then
-    rm ${BackupDir}/${Hostname}-${FSName}.txt
+  if [ -f ${TargetDir}/${Hostname}-${FSName}.txt ]; then
+    rm ${TargetDir}/${Hostname}-${FSName}.txt
   fi
-  if [ -f ${BackupDir}/${Hostname}-${FSName}.md5 ]; then
-    rm ${BackupDir}/${Hostname}-${FSName}.md5
+  if [ -f ${TargetDir}/${Hostname}-${FSName}.md5 ]; then
+    rm ${TargetDir}/${Hostname}-${FSName}.md5
   fi
 
   ## Unmount FileSystem.
@@ -79,65 +81,51 @@ function f_archive_fs()
 
   LVLabel="${Hostname}:${FSPath}->/${FSName}"
   ## Create the compressed and encrypted archive of the snapshot.
-  fsarchiver savefs --compress=7 --jobs=1 --cryptpass="${CryptPass}" --label="${LVLabel}" ${BackupDir}/${Hostname}-${FSName}.fsa ${FSPath} > /dev/null 2>&1
+  fsarchiver savefs --compress=7 --jobs=1 --cryptpass="${CryptPass}" --label="${LVLabel}" ${TargetDir}/${Hostname}-${FSName}.fsa ${FSPath} > /dev/null 2>&1
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of the archive failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${BackupDir}/${FSName}.fsa failed, Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${TargetDir}/${FSName}.fsa failed, Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   ## Create an informational text file about the archive.
-  fsarchiver archinfo --cryptpass="${CryptPass}" ${BackupDir}/${Hostname}-${FSName}.fsa > ${BackupDir}/${Hostname}-${FSName}.txt 2>&1
+  fsarchiver archinfo --cryptpass="${CryptPass}" ${TargetDir}/${Hostname}-${FSName}.fsa > ${TargetDir}/${Hostname}-${FSName}.txt 2>&1
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of info text failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${BackupDir}/${FSName}.txt, Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${TargetDir}/${FSName}.txt, Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   ## Create a checksum file about the archive.
-  md5sum ${BackupDir}/${Hostname}-${FSName}.fsa > ${BackupDir}/${Hostname}-${FSName}.md5
+  md5sum ${TargetDir}/${Hostname}-${FSName}.fsa > ${TargetDir}/${Hostname}-${FSName}.md5
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of md5 checksum failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${BackupDir}/${FSName}.md5, Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${TargetDir}/${FSName}.md5, Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   ## Verify that the checksum file can validate against the archive.
-  md5sum --check --status ${BackupDir}/${Hostname}-${FSName}.md5
+  md5sum --check --status ${TargetDir}/${Hostname}-${FSName}.md5
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Verification failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${BackupDir}/${FSName}.md5. Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${TargetDir}/${FSName}.md5. Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   ## Set file permissions.
-  chmod 0600 ${BackupDir}/${Hostname}-${FSName}.*
+  chmod 0600 ${TargetDir}/${Hostname}-${FSName}.*
 
-  BackupSize=`ls -lak --block-size=m "${BackupDir}/${Hostname}-${FSName}.fsa" | awk '{ print $5 }'`
+  BackupSize=`ls -lak --block-size=m "${TargetDir}/${Hostname}-${FSName}.fsa" | awk '{ print $5 }'`
 
-  echo "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${BackupDir}/${Hostname}-${FSName}.fsa, ${BackupSize}" >> ${LogFile}
-
-  ## Make sure target folder exists.
-  if [ ! -d ${OffsiteDir}/${Hostname} ]; then
-    ## Create folder.  This is typical of 1st time use.
-    mkdir -p ${OffsiteDir}/${Hostname}
-  fi
-  ## Copy the backup to an offsite storage location.
-  echo "`date +%Y-%m-%d_%H:%M:%S` --- Copying archive file to offsite location." >> ${LogFile}
-  cp ${BackupDir}/${Hostname}-${FSName}.* ${OffsiteDir}/${Hostname}/. 1>/dev/null 2>&1
-  if [ ! -f ${OffsiteDir}/${Hostname}/${Hostname}-${FSName}.fsa ]; then
-    ## NON-FATAL ERROR: Copy command did not work.  Send email notification.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- WARNING: Remote copy failed. ${OffsiteDir}/${Hostname}/${Hostname}-${FSName}.fsa does not exist!" >> ${LogFile}
-    f_sendmail "Backup Failure - Remote Copy" "Remote copy failed. ${OffsiteDir}/${Hostname}/${Hostname}-${FSName}.fsa does not exist\n\nBackup file still remains in this location: ${Hostname}:${BackupDir}/${Hostname}-${FSName}.fsa"
-  fi
+  echo "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${TargetDir}/${Hostname}-${FSName}.fsa, ${BackupSize}" >> ${LogFile}
 
   ## Remount FileSystem.
   mount /${FSName}
@@ -149,14 +137,14 @@ function f_archive_vol()
   LVPath=${LVG}/${LVName}
 
   ## Purge old backup files.
-  if [ -f ${BackupDir}/${Hostname}-${LVName}.fsa ]; then
-    rm ${BackupDir}/${Hostname}-${LVName}.fsa
+  if [ -f ${TargetDir}/${Hostname}-${LVName}.fsa ]; then
+    rm ${TargetDir}/${Hostname}-${LVName}.fsa
   fi
-  if [ -f ${BackupDir}/${Hostname}-${LVName}.txt ]; then
-    rm ${BackupDir}/${Hostname}-${LVName}.txt
+  if [ -f ${TargetDir}/${Hostname}-${LVName}.txt ]; then
+    rm ${TargetDir}/${Hostname}-${LVName}.txt
   fi
-  if [ -f ${BackupDir}/${Hostname}-${LVName}.md5 ]; then
-    rm ${BackupDir}/${Hostname}-${LVName}.md5
+  if [ -f ${TargetDir}/${Hostname}-${LVName}.md5 ]; then
+    rm ${TargetDir}/${Hostname}-${LVName}.md5
   fi
 
   ## Create the snapshot volume of the partition to be backed up.
@@ -174,37 +162,37 @@ function f_archive_vol()
 
   LVLabel="${Hostname}:${LVPath}"
   ## Create the compressed and encrypted archive of the snapshot.
-  fsarchiver savefs --compress=7 --jobs=1 --cryptpass="${CryptPass}" --label="${LVLabel}" ${BackupDir}/${Hostname}-${LVName}.fsa ${TempLV} > /dev/null 2>&1
+  fsarchiver savefs --compress=7 --jobs=1 --cryptpass="${CryptPass}" --label="${LVLabel}" ${TargetDir}/${Hostname}-${LVName}.fsa ${TempLV} > /dev/null 2>&1
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of the archive failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${BackupDir}/${Hostname}-${LVName}.fsa failed, Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${TargetDir}/${Hostname}-${LVName}.fsa failed, Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   ## Create an informational text file about the archive.
-  fsarchiver archinfo --cryptpass="${CryptPass}" ${BackupDir}/${Hostname}-${LVName}.fsa > ${BackupDir}/${Hostname}-${LVName}.txt 2>&1
+  fsarchiver archinfo --cryptpass="${CryptPass}" ${TargetDir}/${Hostname}-${LVName}.fsa > ${TargetDir}/${Hostname}-${LVName}.txt 2>&1
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of info text failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${BackupDir}/${Hostname}-${LVName}.txt, Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${TargetDir}/${Hostname}-${LVName}.txt, Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   ## Create a checksum file about the archive.
-  md5sum ${BackupDir}/${Hostname}-${LVName}.fsa > ${BackupDir}/${Hostname}-${LVName}.md5
+  md5sum ${TargetDir}/${Hostname}-${LVName}.fsa > ${TargetDir}/${Hostname}-${LVName}.md5
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of md5 checksum failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${BackupDir}/${Hostname}-${LVName}.md5, Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${TargetDir}/${Hostname}-${LVName}.md5, Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   ## Set file permissions.
-  chmod 0600 ${BackupDir}/${Hostname}-${LVName}.*
+  chmod 0600 ${TargetDir}/${Hostname}-${LVName}.*
 
   ## Remove the snapshot.
   lvremove --force ${TempLV} > /dev/null 2>&1
@@ -220,32 +208,19 @@ function f_archive_vol()
   sleep 2
 
   ## Verify that the checksum file can validate against the archive.
-  md5sum --check --status ${BackupDir}/${Hostname}-${LVName}.md5
+  md5sum --check --status ${TargetDir}/${Hostname}-${LVName}.md5
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Verification failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${BackupDir}/${Hostname}-${LVName}.md5. Return Code = ${ReturnCode}" >> ${LogFile}
+    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${TargetDir}/${Hostname}-${LVName}.md5. Return Code = ${ReturnCode}" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
-  BackupSize=`ls -lak --block-size=m "${BackupDir}/${Hostname}-${LVName}.fsa" | awk '{ print $5 }'`
+  BackupSize=`ls -lak --block-size=m "${TargetDir}/${Hostname}-${LVName}.fsa" | awk '{ print $5 }'`
 
-  echo "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${BackupDir}/${Hostname}-${LVName}.fsa, ${BackupSize}" >> ${LogFile}
+  echo "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${TargetDir}/${Hostname}-${LVName}.fsa, ${BackupSize}" >> ${LogFile}
 
-  ## Make sure target folder exists.
-  if [ ! -d ${OffsiteDir}/${Hostname} ]; then
-    ## Create folder.  This is typical of 1st time use.
-    mkdir -p ${OffsiteDir}/${Hostname}
-  fi
-  ## Copy the backup to an offsite storage location.
-  echo "`date +%Y-%m-%d_%H:%M:%S` --- Copying archive file to offsite location." >> ${LogFile}
-  cp ${BackupDir}/${Hostname}-${LVName}.* ${OffsiteDir}/${Hostname}/. 1>/dev/null 2>&1
-  if [ ! -f ${OffsiteDir}/${Hostname}/${Hostname}-${LVName}.fsa ]; then
-    ## NON-FATAL ERROR: Copy command did not work.  Send email notification.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- WARNING: Remote copy failed. ${OffsiteDir}/${Hostname}/${Hostname}-${LVName}.fsa does not exist!" >> ${LogFile}
-    f_sendmail "Backup Failure - Remote Copy" "Remote copy failed. ${OffsiteDir}/${Hostname}/${Hostname}-${LVName}.fsa does not exist\n\nBackup file still remains in this location: ${Hostname}:${BackupDir}/${Hostname}-${LVName}.fsa"
-  fi
 }
 
 #######################################
@@ -281,34 +256,25 @@ if [ ${ReturnCode} = 1 ]; then
   f_cleanup
 fi
 
-## Mount the remote folder. ##
-f_mount
-
-if [ -f ${OffsiteTestFile} ]; then
-  ## Found local file.  Assuming failed mount.
-  echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Cannot detect remote location: ${OffsiteTestFile}" >> ${LogFile}
-  ErrorFlag=32
-  f_cleanup
+## Make sure target folder exists.
+if [ ! -d ${TargetDir} ]; then
+  mkdir -p ${TargetDir}
 fi
-
 ## Remove old snapshot from a prior run if it exists.
 lvremove --force ${TempLV} > /dev/null 2>&1
 
 StartTime="$(date +%s)"
-echo "`date +%Y-%m-%d_%H:%M:%S` - Backup started." >> ${LogFile}
+echo "`date +%Y-%m-%d_%H:%M:%S` - Partition backup started." >> ${LogFile}
 
 f_archive_fs boot /dev/sda1
 f_archive_vol root
 f_archive_vol var
 f_archive_vol tmp
 f_archive_vol home
-f_archive_vol usr
-f_archive_vol srv
-f_archive_vol opt
+#f_archive_vol usr
+#f_archive_vol srv
+#f_archive_vol opt
 #f_archive_vol swap
-
-## Unmount the Windows shared folder.
-f_umount
 
 ## Calculate total time for backup.
 FinishTime="$(date +%s)"
@@ -320,5 +286,5 @@ Seconds=$((${ElapsedTime} - ${Minutes} * 60))
 
 echo "`date +%Y-%m-%d_%H:%M:%S` --- Total backup time: ${Hours} hour(s) ${Minutes} minute(s) ${Seconds} second(s)" >> ${LogFile}
 
-echo "`date +%Y-%m-%d_%H:%M:%S` - Backup Finished." >> ${LogFile}
+echo "`date +%Y-%m-%d_%H:%M:%S` - Partition backup finished." >> ${LogFile}
 f_cleanup
