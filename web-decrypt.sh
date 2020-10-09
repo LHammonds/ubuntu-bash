@@ -1,13 +1,12 @@
 #!/bin/bash
 #############################################################
-## Name          : db-decrypt.sh
-## Version       : 1.1
-## Date          : 2020-10-09
+## Name          : web-decrypt.sh
+## Version       : 1.0
+## Date          : 2020-10-08
 ## Author        : LHammonds
 ## Purpose       : Decrypt and extract database archives.
 ## Compatibility : Verified on to work on:
 ##                  - Ubuntu Server 20.04 LTS
-##                  - MariaDB 10.4.13
 ## Requirements  : p7zip-full (if ArchiveMethod=tar.7z), sendemail
 ## Run Frequency : As needed
 ## Input         : (Optional) filename prefix to reduce list of options.
@@ -20,8 +19,7 @@
 ######################## CHANGE LOG #########################
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- -----------------------
-## 2020-06-25 1.0 LTH Created script.
-## 2020-10-09 1.1 LTH Added command-line option for filename prefix.
+## 2020-10-08 1.0 LTH Created script. (Fork of db-decrypt 1.1)
 #############################################################
 
 ## Import common variables and functions. ##
@@ -30,8 +28,8 @@ source /var/scripts/common/standard.conf
 ## Change the password in this file to anything other than the default! ##
 source /etc/passenc
 
-Title="db-decrypt"
-SourceDir="${BackupDir}/db"
+Title="web-decrypt"
+SourceDir="${BackupDir}/web"
 CryptPassFile="${TempDir}/${Title}.gpg"
 Timestamp="`date +%Y-%m-%d_%H%M`"
 LogFile="${LogDir}/${Company}-${Title}.log"
@@ -39,8 +37,8 @@ LockFile="${TempDir}/${Company}-${Title}.lock"
 ErrorFlag=0
 
 ## Binaries, you can let the script find them or you can set the full path manually here. ##
-TAR="$(which tar)"
-MY7ZIP="$(which 7za)"
+TarCmd="$(which tar)"
+ZipCmd="$(which 7za)"
 
 #######################################
 ##            FUNCTIONS              ##
@@ -93,14 +91,14 @@ function f_extract()
   ArcFile=$1
   case "${ArchiveMethod}" in
   tar.7z)
-    ${MY7ZIP} x -so -w${TempDir} ${ArcFile} | tar -C ${TempDir}/decrypt --strip-components=2 -xf -
+    ${ZipCmd} x -so -w${TempDir} ${ArcFile} | tar -C ${TempDir}/decrypt --strip-components=2 -xf -
     ReturnValue=$?
     ;;
   tgz)
-    ${TAR} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
+    ${TarCmd} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
     ;;
   *)
-    ${TAR} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
+    ${TarCmd} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
     ReturnValue=$?
     ;;
   esac
@@ -110,10 +108,9 @@ function f_extract()
   else
     ## Remove decrypted archive file and list extracted file(s).
     rm ${ArcFile}
-    find ${TempDir}/decrypt -name "*.sql"
+    find ${TempDir}/decrypt -name "*"
   fi
 } ## f_extract()
-
 
 #######################################
 ##       PREREQUISITE CHECKS         ##
@@ -127,7 +124,6 @@ else
   ## Create the lock file to ensure only one script is running at a time.
   echo "`date +%Y-%m-%d_%H:%M:%S` ${ScriptName}" > ${LockFile}
 fi
-
 ## Requirement Check: Script must run as root user.
 if [ "$(id -u)" != "0" ]; then
   ## FATAL ERROR DETECTED: Document problem and terminate script.
@@ -135,7 +131,6 @@ if [ "$(id -u)" != "0" ]; then
   ErrorFlag=2
   f_emergencyexit
 fi
-
 ## If the 7-Zip archive method is specified, make sure the package is installed.
 if [ "${ArchiveMethod}" = "tar.7z" ]; then
   if [ ! -f "/usr/bin/7za" ]; then
@@ -157,7 +152,6 @@ fi
 #######################################
 
 echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} started." >> ${LogFile}
-
 echo "The following `*.enc` archives were found; select one:"
 # set the prompt used by select, replacing "#?"
 PS3="Use number to select a file or 'stop' to cancel: "
@@ -188,9 +182,7 @@ do
   fi
   break
 done
-
 echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} completed." >> ${LogFile}
-
 ## Perform cleanup routine.
 f_cleanup
 ## Exit with the combined return code value.
