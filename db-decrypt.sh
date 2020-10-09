@@ -2,7 +2,7 @@
 #############################################################
 ## Name          : db-decrypt.sh
 ## Version       : 1.1
-## Date          : 2020-10-08
+## Date          : 2020-10-09
 ## Author        : LHammonds
 ## Purpose       : Decrypt and extract database archives.
 ## Compatibility : Verified on to work on:
@@ -21,7 +21,7 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- -----------------------
 ## 2020-06-25 1.0 LTH Created script.
-## 2020-10-08 1.1 LTH Added command-line option for filename prefix.
+## 2020-10-09 1.1 LTH Added command-line option for filename prefix.
 #############################################################
 
 ## Import common variables and functions. ##
@@ -53,12 +53,6 @@ function f_cleanup()
   if [ -f ${LockFile} ];then
     ## Remove lock file so other backup jobs can run.
     rm ${LockFile} 1>/dev/null 2>&1
-  fi
-  ## Email the result to the administrator.
-  if [ ${ErrorFlag} -eq 0 ]; then
-    f_sendmail "[Success] ${Title}" "${Title} completed with no errors."
-  else
-    f_sendmail "[Failure] ${Title}" "${Title} failed.  ErrorFlag = ${ErrorFlag}"
   fi
   if [ -f ${CryptPassFile} ]; then
     ## Remove temporary file
@@ -186,6 +180,12 @@ do
   ArcFile=$(echo "${EncFile%.*}")
   f_decrypt ${EncFile} ${ArcFile}
   f_extract ${ArcFile}
+  ## Email the result to the administrator.
+  if [ ${ErrorFlag} -eq 0 ]; then
+    f_sendmail "[Success] ${Title}" "${Title} completed with no errors.\n\n${EncFile}"
+  else
+    f_sendmail "[Failure] ${Title}" "${Title} failed.  ErrorFlag = ${ErrorFlag}\n\nAttempted to decrypt ${EncFile}"
+  fi
   break
 done
 
