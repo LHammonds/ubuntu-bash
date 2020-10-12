@@ -1,8 +1,8 @@
 #!/bin/bash
 #############################################################
 ## Name          : db-decrypt.sh
-## Version       : 1.1
-## Date          : 2020-10-09
+## Version       : 1.2
+## Date          : 2020-10-12
 ## Author        : LHammonds
 ## Purpose       : Decrypt and extract database archives.
 ## Compatibility : Verified on to work on:
@@ -22,6 +22,7 @@
 ## ---------- --- --- -----------------------
 ## 2020-06-25 1.0 LTH Created script.
 ## 2020-10-09 1.1 LTH Added command-line option for filename prefix.
+## 2020-10-12 1.2 LTH Code cleanup.
 #############################################################
 
 ## Import common variables and functions. ##
@@ -39,8 +40,10 @@ LockFile="${TempDir}/${Company}-${Title}.lock"
 ErrorFlag=0
 
 ## Binaries, you can let the script find them or you can set the full path manually here. ##
-TAR="$(which tar)"
-MY7ZIP="$(which 7za)"
+TarCmd="$(which tar)"
+ZipCmd="$(which 7za)"
+TeeCmd="$(which tee)"
+GpgCmd="$(which gpg)"
 
 #######################################
 ##            FUNCTIONS              ##
@@ -50,7 +53,7 @@ function f_cleanup()
 {
   echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} exit code: ${ErrorFlag}" >> ${LogFile}
 
-  if [ -f ${LockFile} ];then
+  if [ -f ${LockFile} ]; then
     ## Remove lock file so other backup jobs can run.
     rm ${LockFile} 1>/dev/null 2>&1
   fi
@@ -75,9 +78,9 @@ function f_decrypt()
   touch ${CryptPassFile}
   chmod 0600 ${CryptPassFile}
   echo ${CryptPass} > ${CryptPassFile}
-  if ! gpg --cipher-algo aes256 --output ${DecryptedFile} --passphrase-file ${CryptPassFile} --quiet --batch --yes --no-tty --decrypt ${EncryptedFile}; then
+  if ! ${GpgCmd} --cipher-algo aes256 --output ${DecryptedFile} --passphrase-file ${CryptPassFile} --quiet --batch --yes --no-tty --decrypt ${EncryptedFile}; then
     ## Decryption failed, log results, send email, terminate program.
-    echo "ERROR: Decryption failed: ${EncryptedFile}" | tee -a ${LogFile}
+    echo "ERROR: Decryption failed: ${EncryptedFile}" | ${TeeCmd} -a ${LogFile}
     ErrorFlag=8
     f_cleanup
   fi
@@ -93,14 +96,14 @@ function f_extract()
   ArcFile=$1
   case "${ArchiveMethod}" in
   tar.7z)
-    ${MY7ZIP} x -so -w${TempDir} ${ArcFile} | tar -C ${TempDir}/decrypt --strip-components=2 -xf -
+    ${ZipCmd} x -so -w${TempDir} ${ArcFile} | ${TarCmd} -C ${TempDir}/decrypt --strip-components=2 -xf -
     ReturnValue=$?
     ;;
   tgz)
-    ${TAR} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
+    ${TarCmd} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
     ;;
   *)
-    ${TAR} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
+    ${TarCmd} -C ${TempDir}/decrypt --strip-components=2 -xzf ${ArcFile}
     ReturnValue=$?
     ;;
   esac
@@ -131,7 +134,7 @@ fi
 ## Requirement Check: Script must run as root user.
 if [ "$(id -u)" != "0" ]; then
   ## FATAL ERROR DETECTED: Document problem and terminate script.
-  echo "ERROR: Root user required to run this script." | tee -a ${LogFile}
+  echo "ERROR: Root user required to run this script." | ${TeeCmd} -a ${LogFile}
   ErrorFlag=2
   f_emergencyexit
 fi
@@ -165,17 +168,17 @@ PS3="Use number to select a file or 'stop' to cancel: "
 cd ${SourceDir}
 select EncFile in ${Prefix}*.enc
 do
-  if [[ "${REPLY}" == "stop" ]];then
+  if [[ "${REPLY}" == "stop" ]]; then
     ## User requested to terminate script.
     break;
   fi
-  if [[ "${EncFile}" == "" ]];then
+  if [[ "${EncFile}" == "" ]]; then
     ## User made invalid selection.
     echo "'${REPLY}' is not a valid number"
     continue
   fi
   ## User selected a file.
-  echo "${EncFile} selected" | tee -a ${LogFile}
+  echo "${EncFile} selected" | ${TeeCmd} -a ${LogFile}
   # ArcFile= EncFile without .enc extension.
   ArcFile=$(echo "${EncFile%.*}")
   f_decrypt ${EncFile} ${ArcFile}
