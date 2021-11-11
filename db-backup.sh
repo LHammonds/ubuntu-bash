@@ -1,8 +1,8 @@
 #!/bin/bash
 #############################################################
 ## Name          : db-backup.sh
-## Version       : 1.7
-## Date          : 2020-10-09
+## Version       : 1.8
+## Date          : 2021-11-10
 ## Author        : LHammonds
 ## Purpose       : Complete encrypted backup of MariaDB databases.
 ## Compatibility : Verified on to work on:
@@ -32,6 +32,7 @@
 ## 2020-06-25 1.6 LTH Added encryption, removed remote push.
 ## 2020-10-09 1.7 LTH Added support for MariaDB roles.
 ##                    This scripts is no longer compatible with MySQL.
+## 2021-11-10 1.8 LTH Changed backticks to single quotes.
 #############################################################
 
 ## Import common variables and functions. ##
@@ -249,7 +250,7 @@ function f_export_users()
   ## Grant roles ##
   ${MysqlCmd} --skip-column-names --no-auto-rehash --silent --execute="SELECT CONCAT('SHOW GRANTS FOR ''',User,''';') FROM mysql.user WHERE is_role = 'Y'" | ${MysqlCmd} --skip-column-names --no-auto-rehash | ${SedCmd} 's/$/;/g;1s/^/## Grants for Roles ##\n/' >> ${WorkingDir}/db-grants.sql
   ## Create user ##
-  ${MysqlCmd} --skip-column-names --no-auto-rehash --silent --execute="SELECT User,Host,Password FROM mysql.user WHERE is_role = 'N' AND User NOT IN ('mariadb.sys','root','mysql');" | ${SedCmd} 's/\t/`@`/;s/\t/` IDENTIFIED BY `/;s/^/CREATE USER `/;s/$/`;/;1s/^/## Create Users ##\n/' >> ${WorkingDir}/db-grants.sql
+  ${MysqlCmd} --skip-column-names --no-auto-rehash --silent --execute="SELECT User,Host,Password FROM mysql.user WHERE is_role = 'N' AND User NOT IN ('mariadb.sys','root','mysql');" | ${SedCmd} 's/\t/`@`/;s/\t/` IDENTIFIED BY \x27/;s/^/CREATE USER `/;s/$/\x27;/;1s/^/## Create Users ##\n/' >> ${WorkingDir}/db-grants.sql
   ## User grants ##
   ${MysqlCmd} --skip-column-names --no-auto-rehash --silent --execute="SELECT CONCAT('SHOW GRANTS FOR ''',User,'''@''',Host,''';') FROM mysql.user WHERE User <> '' AND is_role = 'N' AND user NOT IN ('mysql','mariadb.sys','root');" | ${MysqlCmd} --skip-column-names --no-auto-rehash | ${SedCmd} 's/$/;/g;1s/^/## Grants for Users ##\n/' >> ${WorkingDir}/db-grants.sql
   ## Default roles ##
