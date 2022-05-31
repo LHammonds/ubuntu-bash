@@ -1,12 +1,12 @@
 #!/bin/bash
 #############################################################
 ## Name : back-parts.sh (Backup Partitions)
-## Version : 1.5
-## Date : 2020-05-27
+## Version : 1.6
+## Date : 2022-05-31
 ## Author : LHammonds
 ## Purpose : Backup partitions
-## Compatibility : Verified on Ubuntu Server 12.04 thru 20.04 LTS
-##                 Verified with fsarchiver 0.8.4)
+## Compatibility : Verified on Ubuntu Server 22.04 LTS
+##                 Verified with fsarchiver 0.8.6)
 ## Requirements : Fsarchiver, Sendemail, run as root
 ## Run Frequency : Once per day or as often as desired.
 ## Parameters : None
@@ -27,6 +27,7 @@
 ## 2020-01-01 1.4 LTH Remove any prior temp snapshots before starting.
 ## 2020-05-27 1.5 LTH Removed offsite copy section. The offsite
 ##                    location will pull files for better security.
+## 2022-05-31 1.6 LTH Replaced echo statements with printf.
 #############################################################
 
 ## Import standard variables and functions. ##
@@ -55,7 +56,7 @@ function f_cleanup()
   fi
   if [ ${ErrorFlag} != 0 ]; then
     f_sendmail "ERROR: Script Failure" "Please review the log file on ${Hostname}${LogFile}"
-    echo "`date +%Y-%m-%d_%H:%M:%S` - Backup aborted." >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` - Backup aborted.\n" >> ${LogFile}
   fi
   exit ${ErrorFlag}
 }
@@ -85,7 +86,7 @@ function f_archive_fs()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of the archive failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${TargetDir}/${FSName}.fsa failed, Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${TargetDir}/${FSName}.fsa failed, Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
@@ -95,7 +96,7 @@ function f_archive_fs()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of info text failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${TargetDir}/${FSName}.txt, Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${TargetDir}/${FSName}.txt, Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
@@ -105,7 +106,7 @@ function f_archive_fs()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of md5 checksum failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${TargetDir}/${FSName}.md5, Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${TargetDir}/${FSName}.md5, Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
@@ -115,7 +116,7 @@ function f_archive_fs()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Verification failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${TargetDir}/${FSName}.md5. Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${TargetDir}/${FSName}.md5. Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
@@ -125,7 +126,7 @@ function f_archive_fs()
 
   BackupSize=`ls -lak --block-size=m "${TargetDir}/${Hostname}-${FSName}.fsa" | awk '{ print $5 }'`
 
-  echo "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${TargetDir}/${Hostname}-${FSName}.fsa, ${BackupSize}" >> ${LogFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${TargetDir}/${Hostname}-${FSName}.fsa, ${BackupSize}\n" >> ${LogFile}
 
   ## Remount FileSystem.
   mount /${FSName}
@@ -152,7 +153,7 @@ function f_archive_vol()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of temporary volume failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of temp volume failed for ${LVPath}, size=${MaxTempVolSize}, Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of temp volume failed for ${LVPath}, size=${MaxTempVolSize}, Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=8
     f_cleanup
   fi
@@ -166,7 +167,7 @@ function f_archive_vol()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of the archive failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${TargetDir}/${Hostname}-${LVName}.fsa failed, Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of ${TargetDir}/${Hostname}-${LVName}.fsa failed, Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
@@ -176,7 +177,7 @@ function f_archive_vol()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of info text failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${TargetDir}/${Hostname}-${LVName}.txt, Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of info file failed for ${TargetDir}/${Hostname}-${LVName}.txt, Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
@@ -186,7 +187,7 @@ function f_archive_vol()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Creation of md5 checksum failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${TargetDir}/${Hostname}-${LVName}.md5, Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Creation of checksum failed for ${TargetDir}/${Hostname}-${LVName}.md5, Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
@@ -199,7 +200,7 @@ function f_archive_vol()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Removal of temporary volume failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Removal of temp volume failed. ${TempLV}. Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: Removal of temp volume failed. ${TempLV}. Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=8
     f_cleanup
   fi
@@ -212,14 +213,14 @@ function f_archive_vol()
   ReturnCode=$?
   if [ ${ReturnCode} != 0 ]; then
     ## Verification failed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${TargetDir}/${Hostname}-${LVName}.md5. Return Code = ${ReturnCode}" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` --- ERROR: md5 validation check failed for ${TargetDir}/${Hostname}-${LVName}.md5. Return Code = ${ReturnCode}\n" >> ${LogFile}
     ErrorFlag=16
     f_cleanup
   fi
 
   BackupSize=`ls -lak --block-size=m "${TargetDir}/${Hostname}-${LVName}.fsa" | awk '{ print $5 }'`
 
-  echo "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${TargetDir}/${Hostname}-${LVName}.fsa, ${BackupSize}" >> ${LogFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` --- Created: ${TargetDir}/${Hostname}-${LVName}.fsa, ${BackupSize}\n" >> ${LogFile}
 
 }
 
@@ -229,20 +230,20 @@ function f_archive_vol()
 
 if [ -f ${LockFile} ]; then
   # Lock file detected.  Abort script.
-  echo "Backup partitions script aborted"
-  echo "This script tried to run but detected the lock file: ${LockFile}"
-  echo "Please check to make sure the file does not remain when backup partitions is not actually running."
+  printf "Backup partitions script aborted\n"
+  printf "This script tried to run but detected the lock file: ${LockFile}\n"
+  printf "Please check to make sure the file does not remain when backup partitions is not actually running.\n"
   f_sendmail "ERROR: Backup partitions script aborted" "This script tried to run but detected the lock file: ${LockFile}\n\nPlease check to make sure the file does not remain when backup partitions is not actually running.\n\nIf you find that the script is not running/hung, you can remove it by typing 'rm ${LockFile}'"
   ErrorFlag=1
   exit ${ErrorFlag}
 else
-  echo "`date +%Y-%m-%d_%H:%M:%S` ${ScriptName}" > ${LockFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` ${ScriptName}\n" > ${LockFile}
 fi
 
 ## Requirement Check: Script must run as root user.
 if [ "$(id -u)" != "0" ]; then
   ## FATAL ERROR DETECTED: Document problem and terminate script.
-  echo "`date +%Y-%m-%d_%H:%M:%S` ERROR: Root user required to run this script." >> ${LogFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` ERROR: Root user required to run this script.\n" >> ${LogFile}
   ErrorFlag=2
   f_cleanup
 fi
@@ -251,7 +252,7 @@ fi
 command -v fsarchiver > /dev/null 2>&1 && ReturnCode=0 || ReturnCode=1
 if [ ${ReturnCode} = 1 ]; then
   ## Required program not installed.
-  echo "`date +%Y-%m-%d_%H:%M:%S` ERROR: fsarchiver not installed." >> ${LogFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` ERROR: fsarchiver not installed.\n" >> ${LogFile}
   ErrorFlag=4
   f_cleanup
 fi
@@ -264,16 +265,16 @@ fi
 lvremove --force ${TempLV} > /dev/null 2>&1
 
 StartTime="$(date +%s)"
-echo "`date +%Y-%m-%d_%H:%M:%S` - Partition backup started." >> ${LogFile}
+printf "`date +%Y-%m-%d_%H:%M:%S` - Partition backup started.\n" >> ${LogFile}
 
-f_archive_fs boot /dev/sda1
+f_archive_fs boot /dev/sda2
 f_archive_vol root
+f_archive_vol home
+f_archive_vol srv
+f_archive_vol usr
 f_archive_vol var
 f_archive_vol tmp
-f_archive_vol home
-#f_archive_vol usr
-#f_archive_vol srv
-#f_archive_vol opt
+f_archive_vol opt
 #f_archive_vol swap
 
 ## Calculate total time for backup.
@@ -284,7 +285,7 @@ ElapsedTime=$((${ElapsedTime} - ${Hours} * 3600))
 Minutes=$((${ElapsedTime} / 60))
 Seconds=$((${ElapsedTime} - ${Minutes} * 60))
 
-echo "`date +%Y-%m-%d_%H:%M:%S` --- Total backup time: ${Hours} hour(s) ${Minutes} minute(s) ${Seconds} second(s)" >> ${LogFile}
+printf "`date +%Y-%m-%d_%H:%M:%S` --- Total backup time: ${Hours} hour(s) ${Minutes} minute(s) ${Seconds} second(s)\n" >> ${LogFile}
 
-echo "`date +%Y-%m-%d_%H:%M:%S` - Partition backup finished." >> ${LogFile}
+printf "`date +%Y-%m-%d_%H:%M:%S` - Partition backup finished.\n" >> ${LogFile}
 f_cleanup
