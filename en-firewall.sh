@@ -1,6 +1,6 @@
 #!/bin/bash
 #############################################################
-## Name          : enable-firewall.sh
+## Name          : en-firewall.sh
 ## Version       : 1.2
 ## Date          : 2022-05-31
 ## Author        : LHammonds
