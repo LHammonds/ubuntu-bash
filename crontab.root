@@ -1,14 +1,15 @@
 #############################################################
 ## Name    : Crontab.root
 ## Author  : LHammonds
-## Version : 1.1
-## Date    : 2020-04-09
+## Version : 1.2
+## Date    : 2022-05-31
 ## Purpose : Crontab Schedule for root user
 ###################### CHANGE LOG ###########################
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
 ## 2012-05-20 1.0 LTH Created schedule.
 ## 2020-04-09 1.1 LTH Minor updates.
+## 2022-04-31 1.2 LTH Partition updates to match 22.04 instructions.
 #############################################################
 
 SHELL=/bin/sh
@@ -25,21 +26,25 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 #
 # Backup database server
 #
-0 23 * * * /var/scripts/prod/db-backup.sh > /dev/null 2>&1
+#0 23 * * * /var/scripts/prod/db-backup.sh > /dev/null 2>&1
 #
 # Backup specific database on demand
 #
-0-59 * * * * /var/scripts/prod/db-ondemand-backup.sh > /dev/null 2>&1
+#0-59 * * * * /var/scripts/prod/db-ondemand-backup.sh > /dev/null 2>&1
 #
 # Daily checks for available space
 #
 0 1 * * * /var/scripts/prod/check-storage.sh root 500 100 > /dev/null 2>&1
-15 1 * * * /var/scripts/prod/check-storage.sh home 100 50 > /dev/null 2>&1
-30 1 * * * /var/scripts/prod/check-storage.sh tmp 100 50 > /dev/null 2>&1
-45 1 * * * /var/scripts/prod/check-storage.sh var 100 50 > /dev/null 2>&1
-0 2 * * * /var/scripts/prod/check-storage.sh bak 100 50 > /dev/null 2>&1
+5 1 * * * /var/scripts/prod/check-storage.sh home 100 50 > /dev/null 2>&1
+10 1 * * * /var/scripts/prod/check-storage.sh srv 100 50 > /dev/null 2>&1
+15 1 * * * /var/scripts/prod/check-storage.sh usr 100 50 > /dev/null 2>&1
+20 1 * * * /var/scripts/prod/check-storage.sh var 100 50 > /dev/null 2>&1
+25 1 * * * /var/scripts/prod/check-storage.sh tmp 100 50 > /dev/null 2>&1
+30 1 * * * /var/scripts/prod/check-storage.sh opt 100 50 > /dev/null 2>&1
+35 1 * * * /var/scripts/prod/check-storage.sh bak 500 500 > /dev/null 2>&1
 #
 # Daily software upgrade check
 #
 0 3 * * * /var/scripts/prod/apt-upgrade.sh > /dev/null 2>&1
 30 3 * * * /var/scripts/prod/reboot-check.sh > /dev/null 2>&1
+
