@@ -1,13 +1,13 @@
 #!/bin/bash
 #############################################################
 ## Name          : db-decrypt.sh
-## Version       : 1.2
-## Date          : 2020-10-12
+## Version       : 1.3
+## Date          : 2022-06-29
 ## Author        : LHammonds
 ## Purpose       : Decrypt and extract database archives.
 ## Compatibility : Verified on to work on:
-##                  - Ubuntu Server 20.04 LTS
-##                  - MariaDB 10.4.13
+##                  - Ubuntu Server 22.04 LTS
+##                  - MariaDB 10.6.7
 ## Requirements  : p7zip-full (if ArchiveMethod=tar.7z), sendemail
 ## Run Frequency : As needed
 ## Input         : (Optional) filename prefix to reduce list of options.
@@ -23,6 +23,7 @@
 ## 2020-06-25 1.0 LTH Created script.
 ## 2020-10-09 1.1 LTH Added command-line option for filename prefix.
 ## 2020-10-12 1.2 LTH Code cleanup.
+## 2022-06-29 1.3 LTH Replaced echo with printf statements.
 #############################################################
 
 ## Import common variables and functions. ##
@@ -51,7 +52,7 @@ GpgCmd="$(which gpg)"
 
 function f_cleanup()
 {
-  echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} exit code: ${ErrorFlag}" >> ${LogFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` - ${Title} exit code: ${ErrorFlag}\n" >> ${LogFile}
 
   if [ -f ${LockFile} ]; then
     ## Remove lock file so other backup jobs can run.
@@ -77,10 +78,10 @@ function f_decrypt()
   ## Create temporary password file
   touch ${CryptPassFile}
   chmod 0600 ${CryptPassFile}
-  echo ${CryptPass} > ${CryptPassFile}
+  printf "${CryptPass}\n" > ${CryptPassFile}
   if ! ${GpgCmd} --cipher-algo aes256 --output ${DecryptedFile} --passphrase-file ${CryptPassFile} --quiet --batch --yes --no-tty --decrypt ${EncryptedFile}; then
     ## Decryption failed, log results, send email, terminate program.
-    echo "ERROR: Decryption failed: ${EncryptedFile}" | ${TeeCmd} -a ${LogFile}
+    printf "[ERROR] Decryption failed: ${EncryptedFile}\n" | ${TeeCmd} -a ${LogFile}
     ErrorFlag=8
     f_cleanup
   fi
@@ -92,7 +93,9 @@ function f_decrypt()
 
 function f_extract()
 {
-  mkdir ${TempDir}/decrypt
+  if [ ! -d ${TempDir}/decrypt ]; then
+    mkdir ${TempDir}/decrypt
+  fi
   ArcFile=$1
   case "${ArchiveMethod}" in
   tar.7z)
@@ -109,7 +112,7 @@ function f_extract()
   esac
   if [ ${ReturnValue} -ne 0 ]; then
     ## Extract command failed. Display warning.
-    echo "${Title} - Archive extract failure. Return value of ${ReturnValue}"
+    printf "${Title} - Archive extract failure. Return value of ${ReturnValue}\n"
   else
     ## Remove decrypted archive file and list extracted file(s).
     rm ${ArcFile}
@@ -128,13 +131,13 @@ if [ -f ${LockFile} ]; then
   exit 1
 else
   ## Create the lock file to ensure only one script is running at a time.
-  echo "`date +%Y-%m-%d_%H:%M:%S` ${ScriptName}" > ${LockFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` ${ScriptName}\n" > ${LockFile}
 fi
 
 ## Requirement Check: Script must run as root user.
 if [ "$(id -u)" != "0" ]; then
   ## FATAL ERROR DETECTED: Document problem and terminate script.
-  echo "ERROR: Root user required to run this script." | ${TeeCmd} -a ${LogFile}
+  printf "[ERROR] Root user required to run this script.\n" | ${TeeCmd} -a ${LogFile}
   ErrorFlag=2
   f_emergencyexit
 fi
@@ -143,7 +146,7 @@ fi
 if [ "${ArchiveMethod}" = "tar.7z" ]; then
   if [ ! -f "/usr/bin/7za" ]; then
     ## Required package (7-Zip) not installed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` - CRITICAL ERROR: 7-Zip package not installed.  Please install by typing 'sudo apt install p7zip-full'" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` - CRITICAL ERROR: 7-Zip package not installed.  Please install by typing 'sudo apt install p7zip-full'\n" >> ${LogFile}
     ErrorFlag=4
     f_emergencyexit
   fi
@@ -159,9 +162,9 @@ fi
 ##           MAIN PROGRAM            ##
 #######################################
 
-echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} started." >> ${LogFile}
+printf "`date +%Y-%m-%d_%H:%M:%S` - ${Title} started.\n" >> ${LogFile}
 
-echo "The following `*.enc` archives were found; select one:"
+printf "The following `*.enc` archives were found; select one:\n"
 # set the prompt used by select, replacing "#?"
 PS3="Use number to select a file or 'stop' to cancel: "
 # allow the user to choose a file
@@ -174,13 +177,13 @@ do
   fi
   if [[ "${EncFile}" == "" ]]; then
     ## User made invalid selection.
-    echo "'${REPLY}' is not a valid number"
+    printf "'${REPLY}' is not a valid number\n"
     continue
   fi
   ## User selected a file.
-  echo "${EncFile} selected" | ${TeeCmd} -a ${LogFile}
+  printf "${EncFile} selected\n" | ${TeeCmd} -a ${LogFile}
   # ArcFile= EncFile without .enc extension.
-  ArcFile=$(echo "${EncFile%.*}")
+  ArcFile=$(printf "${EncFile%.*}\n")
   f_decrypt ${EncFile} ${ArcFile}
   f_extract ${ArcFile}
   ## Email the result to the administrator.
@@ -192,7 +195,7 @@ do
   break
 done
 
-echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} completed." >> ${LogFile}
+printf "`date +%Y-%m-%d_%H:%M:%S` - ${Title} completed.\n" >> ${LogFile}
 
 ## Perform cleanup routine.
 f_cleanup
