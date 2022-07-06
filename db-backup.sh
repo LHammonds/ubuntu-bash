@@ -33,7 +33,7 @@
 ## 2020-10-09 1.7 LTH Added support for MariaDB roles.
 ##                    This scripts is no longer compatible with MySQL.
 ## 2021-11-10 1.8 LTH Changed backticks to single quotes.
-## 2022-06-28 1.9 LTH Replaced echo with print statements.
+## 2022-06-28 1.9 LTH Replaced echo with print statements. --add-drop-database
 #############################################################
 
 ## Import common variables and functions. ##
@@ -238,7 +238,7 @@ function f_archive_folder()
 function f_export_systemdb()
 {
   ## Dump system database to single file, archive it, encrypt it, set permission, delete temp files
-  ${MysqldumpCmd} --skip-lock-tables --databases mysql > ${WorkingDir}/db-system.sql
+  ${MysqldumpCmd} --skip-lock-tables --add-drop-database --databases mysql > ${WorkingDir}/db-system.sql
   f_archive_file ${WorkingDir}/db-system.sql ${WorkingDir}/${Timestamp}-db-system.${ArchiveMethod}
   f_encrypt ${WorkingDir}/${Timestamp}-db-system.${ArchiveMethod} ${WorkingDir}/${Timestamp}-db-system.${ArchiveMethod}.enc
 } ## f_export_systemdb() ##
@@ -270,7 +270,7 @@ function f_export_alldb()
     DBDumpList="${DBDumpList} ${DB}"
   done
   ## Dump all user databases to single file, archive it, encrypt it, set permission, delete temp files
-  ${MysqldumpCmd} --skip-lock-tables --databases ${DBDumpList} > ${WorkingDir}/db-all.sql
+  ${MysqldumpCmd} --skip-lock-tables --add-drop-database --databases ${DBDumpList} > ${WorkingDir}/db-all.sql
   f_archive_file ${WorkingDir}/db-all.sql ${WorkingDir}/${Timestamp}-db-all.${ArchiveMethod}
   f_encrypt ${WorkingDir}/${Timestamp}-db-all.${ArchiveMethod} ${WorkingDir}/${Timestamp}-db-all.${ArchiveMethod}.enc
 } ## f_export_alldb() ##
@@ -288,7 +288,7 @@ function f_export_userdb()
   for SingleDB in ${DBDumpList}
   do
     ## Backup individual database.
-    ${MysqldumpCmd} ${SingleDB} > ${WorkingDir}/${SingleDB}.sql
+    ${MysqldumpCmd} --add-drop-database --databases ${SingleDB} > ${WorkingDir}/${SingleDB}.sql
     f_archive_file ${WorkingDir}/${SingleDB}.sql ${WorkingDir}/${Timestamp}-db-${SingleDB}.${ArchiveMethod}
     f_encrypt ${WorkingDir}/${Timestamp}-db-${SingleDB}.${ArchiveMethod} ${WorkingDir}/${Timestamp}-db-${SingleDB}.${ArchiveMethod}.enc
   done
