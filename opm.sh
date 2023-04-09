@@ -1,10 +1,10 @@
 #!/bin/bash
 #############################################################
 ## Name          : opm.sh
-## Version       : 1.2
-## Date          : 2018-04-19
+## Version       : 1.3
+## Date          : 2022-05-31
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 12.04 - 20.04 LTS
+## Compatibility : Verified on Ubuntu Server 22.04 LTS
 ## Requirements  : dialog (apt-get dialog) and root privileges
 ## Purpose       : Display menu to control the server
 ## Run Frequency : As needed
@@ -14,8 +14,9 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
 ## 2013-01-07 1.0 LTH Created script.
-## 2017-03-17 1.1 LTH Changed variables to CamelCase.
+## 2017-03-17 1.1 LTH Updated variable standards.
 ## 2018-04-19 1.2 LTH Various minor changes.
+## 2022-05-31 1.3 LTH Replaced echo statements with printf.
 #############################################################
 
 ## Store menu options selected by the user.
@@ -32,9 +33,9 @@ vi_editor=${EDITOR-vi}
 ## Requirement Check: Script must run as root user.
 if [ "$(id -u)" != "0" ]; then
   ## FATAL ERROR DETECTED: Document problem and terminate script.
-  echo -e "\nERROR: Root user required to run this script.\n"
-  echo -e "Type 'sudo su' to temporarily become root user.\n"
-  exit
+  printf "\nERROR: Root user required to run this script.\n"
+  printf "Type 'sudo su' to temporarily become root user.\n"
+  exit 1
 fi
 
 ## Trap and delete temp files.
@@ -53,16 +54,16 @@ function f_display_output(){
 
 function f_showdate(){
   ## Purpose - display current system date & time
-  echo "Today is $(date) @ $(hostname -f)." >$OutputFile
+  printf "Today is $(date) @ $(hostname -f).\n" >$OutputFile
   f_display_output 6 60 "Date and Time"
 } ## f_showdate
 
 function f_checkdisk(){
   ## Purpose: Display disk status.
   clear
-  echo -e "df --block-size=M\n"
+  printf "df --block-size=M\n"
   df --block-size=M
-  echo ""
+  printf "\n"
   read -p "Press [Enter] key to continue..."
 } ## f_checkdisk
 
@@ -96,7 +97,7 @@ do
     RebootServer) ${ScriptDir}/reboot.sh;;
     PoweroffServer) ${ScriptDir}/shutdown.sh;;
     Date/time) f_showdate;;
-    Exit) clear; echo "Clean menu exit."; break;;
+    Exit) clear; printf "Clean menu exit.\n"; break;;
   esac
 done
 

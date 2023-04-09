@@ -1,10 +1,10 @@
 #!/bin/bash
 #############################################################
 ## Name          : togglemount.sh
-## Version       : 1.3
-## Date          : 2020-05-01
+## Version       : 1.4
+## Date          : 2022-05-31
 ## Author        : LHammonds
-## Compatibility : Ubuntu Server 10.04 thru 20.04 LTS
+## Compatibility : Verified on Ubuntu Server 22.04 LTS
 ## Purpose       : Toggle the mount status of a pre-configured backup mount.
 ## Run Frequency : Manual as needed.
 ## Exit Codes    :
@@ -14,9 +14,10 @@
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
 ## 2011-11-05 1.0 LTH Created script.
-## 2017-03-17 1.1 LTH Changed variables to CamelCase.
+## 2017-03-17 1.1 LTH Updated variable standards.
 ## 2019-07-18 1.2 LTH Updated reference file online.txt to offline.txt
 ## 2020-05-01 1.3 LTH Test file now uses the common variable name.
+## 2022-05-31 1.4 LTH Replaced echo statements with printf.
 #############################################################
 
 ## Import common variables and functions. ##
@@ -24,23 +25,23 @@ source /var/scripts/common/standard.conf
 ErrorFlag=0
 
 if [ -f ${OffsiteTestFile} ]; then
-  echo "Remote share is not mounted.  Mounting share now..."
+  printf "Remote share is not mounted.  Mounting share now...\n"
   f_mount
   sleep 2
   if [ -f ${OffsiteTestFile} ]; then
-    echo "Mount failed.  Listing contents:"
+    printf "Mount failed.  Listing contents:\n"
     ErrorFlag=1
   else
-    echo "Mount successful.  Listing contents:"
+    printf "Mount successful.  Listing contents:\n"
   fi
 else
-  echo "Remote share is mounted.  Dismounting share now..."
+  printf "Remote share is mounted.  Dismounting share now...\n"
   f_umount
   sleep 2
   if [ -f ${OffsiteTestFile} ]; then
-    echo "Dismount successful.  Listing contents:"
+    printf "Dismount successful.  Listing contents:\n"
   else
-    echo "Dismount failed.  Listing contents:"
+    printf "Dismount failed.  Listing contents:\n"
     ErrorFlag=1
   fi
 fi

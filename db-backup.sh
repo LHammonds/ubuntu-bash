@@ -1,13 +1,13 @@
 #!/bin/bash
 #############################################################
 ## Name          : db-backup.sh
-## Version       : 1.8
-## Date          : 2021-11-10
+## Version       : 1.9
+## Date          : 2022-06-28
 ## Author        : LHammonds
 ## Purpose       : Complete encrypted backup of MariaDB databases.
 ## Compatibility : Verified on to work on:
-##                  - Ubuntu Server 20.04 LTS
-##                  - MariaDB 10.4.13 -> MariaDB 10.5.6
+##                  - Ubuntu Server 22.04 LTS
+##                  - MariaDB 10.6.7
 ## Requirements  : p7zip-full (if ArchiveMethod=tar.7z), sendemail
 ## Run Frequency : Once per day after hours or as needed
 ##                 (will not shutdown service)
@@ -33,6 +33,7 @@
 ## 2020-10-09 1.7 LTH Added support for MariaDB roles.
 ##                    This scripts is no longer compatible with MySQL.
 ## 2021-11-10 1.8 LTH Changed backticks to single quotes.
+## 2022-06-28 1.9 LTH Replaced echo with print statements. --add-drop-database
 #############################################################
 
 ## Import common variables and functions. ##
@@ -67,7 +68,7 @@ AwkCmd="$(which awk)"
 
 function f_cleanup()
 {
-  echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} exit code: ${ErrorFlag}" >> ${LogFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` - ${Title} exit code: ${ErrorFlag}\n" >> ${LogFile}
 
   if [ -f ${LockFile} ];then
     ## Remove lock file so other backup jobs can run.
@@ -102,11 +103,11 @@ function f_encrypt()
   ## Create temporary password file
   touch ${CryptPassFile}
   chmod 0600 ${CryptPassFile}
-  echo ${CryptPass} > ${CryptPassFile}
+  printf "${CryptPass}\n" > ${CryptPassFile}
   if ! gpg --cipher-algo aes256 --output /${EncFile} --passphrase-file ${CryptPassFile} --batch --yes --no-tty --symmetric ${ArcFile}; then
     ## Encryption failed, log results, send email, terminate program.
     rm ${CryptPassFile}
-    echo "ERROR: Encryption failed. ${ArcFile}" | tee -a ${LogFile}
+    printf "[ERROR] Encryption failed. ${ArcFile}\n" | tee -a ${LogFile}
     ErrorFlag=16
     f_cleanup
   else
@@ -121,7 +122,7 @@ function f_encrypt()
   chmod 0600 ${EncFile}
   chown root:root ${EncFile}.sha512
   chown root:root ${EncFile}*
-  echo "`date +%Y-%m-%d_%H:%M:%S` -- Created ${EncFile}" >> ${LogFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` -- Created ${EncFile}\n" >> ${LogFile}
 } ## f_encrypt() ##
 
 function f_decrypt()
@@ -131,10 +132,10 @@ function f_decrypt()
   ## Create temporary password file
   touch ${CryptPassFile}
   chmod 0600 ${CryptPassFile}
-  echo ${CryptPass} > ${CryptPassFile}
+  printf "${CryptPass}\n" > ${CryptPassFile}
   if ! gpg --cipher-algo aes256 --output ${DecryptedFile} --passphrase-file ${CryptPassFile} --quiet --batch --yes --no-tty --decrypt ${EncryptedFile}; then
     ## Decryption failed, log results, send email, terminate program.
-    echo "ERROR: Decryption failed: ${EncryptedFile}" | tee -a ${LogFile}
+    printf "[ERROR] Decryption failed: ${EncryptedFile}\n" | tee -a ${LogFile}
     ErrorFlag=99
     f_cleanup
   fi
@@ -181,7 +182,7 @@ function f_archive_file()
     if [ -f ${OrgFile} ]; then
       rm ${OrgFile}
     else
-      echo "Missing expected file: ${OrgFile}" | tee -a ${LogFile}
+      printf "Missing expected file: ${OrgFile}\n" | tee -a ${LogFile}
     fi
     ## Set expected permissions.
     chmod 0600 ${ArcFile}
@@ -226,7 +227,7 @@ function f_archive_folder()
     if [ -d ${FolderName} ]; then
       rm -rf ${FolderName}
     else
-      echo "Missing expected folder: ${FolderName}" | tee -a ${LogFile}
+      printf "Missing expected folder: ${FolderName}\n" | tee -a ${LogFile}
     fi
     ## Set expected permissions.
     chmod 0600 ${ArcFile}
@@ -237,7 +238,7 @@ function f_archive_folder()
 function f_export_systemdb()
 {
   ## Dump system database to single file, archive it, encrypt it, set permission, delete temp files
-  ${MysqldumpCmd} --skip-lock-tables --databases mysql > ${WorkingDir}/db-system.sql
+  ${MysqldumpCmd} --skip-lock-tables --add-drop-database --databases mysql > ${WorkingDir}/db-system.sql
   f_archive_file ${WorkingDir}/db-system.sql ${WorkingDir}/${Timestamp}-db-system.${ArchiveMethod}
   f_encrypt ${WorkingDir}/${Timestamp}-db-system.${ArchiveMethod} ${WorkingDir}/${Timestamp}-db-system.${ArchiveMethod}.enc
 } ## f_export_systemdb() ##
@@ -269,7 +270,7 @@ function f_export_alldb()
     DBDumpList="${DBDumpList} ${DB}"
   done
   ## Dump all user databases to single file, archive it, encrypt it, set permission, delete temp files
-  ${MysqldumpCmd} --skip-lock-tables --databases ${DBDumpList} > ${WorkingDir}/db-all.sql
+  ${MysqldumpCmd} --skip-lock-tables --add-drop-database --databases ${DBDumpList} > ${WorkingDir}/db-all.sql
   f_archive_file ${WorkingDir}/db-all.sql ${WorkingDir}/${Timestamp}-db-all.${ArchiveMethod}
   f_encrypt ${WorkingDir}/${Timestamp}-db-all.${ArchiveMethod} ${WorkingDir}/${Timestamp}-db-all.${ArchiveMethod}.enc
 } ## f_export_alldb() ##
@@ -287,7 +288,7 @@ function f_export_userdb()
   for SingleDB in ${DBDumpList}
   do
     ## Backup individual database.
-    ${MysqldumpCmd} ${SingleDB} > ${WorkingDir}/${SingleDB}.sql
+    ${MysqldumpCmd} --add-drop-database --databases ${SingleDB} > ${WorkingDir}/${SingleDB}.sql
     f_archive_file ${WorkingDir}/${SingleDB}.sql ${WorkingDir}/${Timestamp}-db-${SingleDB}.${ArchiveMethod}
     f_encrypt ${WorkingDir}/${Timestamp}-db-${SingleDB}.${ArchiveMethod} ${WorkingDir}/${Timestamp}-db-${SingleDB}.${ArchiveMethod}.enc
   done
@@ -308,7 +309,7 @@ function f_export_tables()
     ## Create database sub-folder.
     mkdir -p ${WorkingDir}/${SingleDB}
     ## Export each table in the database individually.
-    for SingleTable in `echo "show tables" | ${MysqlCmd} ${SingleDB}|grep -v Tables_in_`;
+    for SingleTable in `printf "show tables\n" | ${MysqlCmd} ${SingleDB}|grep -v Tables_in_`;
     do
       DataFile=${WorkingDir}/${SingleDB}/${SingleTable}.sql
       case "${SingleTable}" in
@@ -327,7 +328,7 @@ function f_export_tables()
       f_archive_folder ${WorkingDir}/${SingleDB} ${WorkingDir}/${Timestamp}-tbl-${SingleDB}.${ArchiveMethod}
       f_encrypt ${WorkingDir}/${Timestamp}-tbl-${SingleDB}.${ArchiveMethod} ${WorkingDir}/${Timestamp}-tbl-${SingleDB}.${ArchiveMethod}.enc
     else
-      echo "[INFO] Database has no tables: ${SingleDB}" >> ${LogFile}
+      printf "[INFO] Database has no tables: ${SingleDB}\n" >> ${LogFile}
       rmdir ${WorkingDir}/${SingleDB}
     fi
   done
@@ -343,13 +344,13 @@ if [ -f ${LockFile} ]; then
   exit 1
 else
   ## Create the lock file to ensure only one script is running at a time.
-  echo "`date +%Y-%m-%d_%H:%M:%S` ${ScriptName}" > ${LockFile}
+  printf "`date +%Y-%m-%d_%H:%M:%S` ${ScriptName}\n" > ${LockFile}
 fi
 
 ## Requirement Check: Script must run as root user.
 if [ "$(id -u)" != "0" ]; then
   ## FATAL ERROR DETECTED: Document problem and terminate script.
-  echo "ERROR: Root user required to run this script." | tee -a ${LogFile}
+  printf "[ERROR] Root user required to run this script.\n" | tee -a ${LogFile}
   ErrorFlag=2
   f_emergencyexit
 fi
@@ -358,10 +359,16 @@ fi
 if [ "${ArchiveMethod}" = "tar.7z" ]; then
   if [ ! -f "/usr/bin/7za" ]; then
     ## Required package (7-Zip) not installed.
-    echo "`date +%Y-%m-%d_%H:%M:%S` - CRITICAL ERROR: 7-Zip package not installed.  Please install by typing 'sudo apt install p7zip-full'" >> ${LogFile}
+    printf "`date +%Y-%m-%d_%H:%M:%S` - CRITICAL ERROR: 7-Zip package not installed.  Please install by typing 'sudo apt install p7zip-full'\n" >> ${LogFile}
     ErrorFlag=4
     f_emergencyexit
   fi
+fi
+
+## If destination folder does not exist, create it. Mainly for 1st time use.
+if [ ! -d ${TargetDir} ]; then
+  mkdir -p ${TargetDir}
+  chmod 0700 ${TargetDir}
 fi
 
 ## If destination folder does not exist, create it. Mainly for 1st time use.
@@ -381,22 +388,22 @@ chmod 0700 ${WorkingDir}
 ##           MAIN PROGRAM            ##
 #######################################
 
-echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} started." >> ${LogFile}
+printf "`date +%Y-%m-%d_%H:%M:%S` - ${Title} started.\n" >> ${LogFile}
 StartTime="$(date +%s)"
 
 ## Document the current partition status:
-echo "-- Partition status:" >> ${LogFile}
+printf "## Partition status:\n" >> ${LogFile}
 df -h >> ${LogFile}
 
 ## Document the database version:
-echo "-- Database version:" >> ${LogFile}
+printf "## Database version:\n" >> ${LogFile}
 ${MysqlCmd} --version >> ${LogFile}
 
 ## Document the current uptime.
 ${MysqlCmd} -e status | grep -i uptime >> ${LogFile}
 
 ## Document the current size of the database folder.
-echo "-- Space consumed in ${DBDir} = `du -sh ${DBDir} | ${AwkCmd} '{ print $1 }'`" >> ${LogFile}
+printf "## Space consumed in ${DBDir} = `du -sh ${DBDir} | ${AwkCmd} '{ print $1 }'`\n" >> ${LogFile}
 
 ## Export users, roles and grants.
 ## NOTE: Useful for local restore, migration or disaster recovery.
@@ -417,20 +424,20 @@ f_export_tables
 FreeSpace=`df --block-size=1k ${BackupDir} | grep ${BackupDir} | ${AwkCmd} '{ print $4 }'`
 BackupSize=`du --summarize --block-size=1k ${WorkingDir} | ${AwkCmd} '{ print $1 }'`
 
-echo "-- FreeSpace=${FreeSpace}k BackupSize=${BackupSize}k" >> ${LogFile}
+printf "## FreeSpace=${FreeSpace}k BackupSize=${BackupSize}k\n" >> ${LogFile}
 
 ## Make sure space is available in the remote folder to copy the file.
 if [ "${FreeSpace}" -lt "${BackupSize}" ]; then
   ## Not enough free space available.  Send email and exit.
-    echo "[ERROR] Freespace: Not enough space (${BackupSize}k) in ${BackupDir}" | tee -a ${LogFile}
+    printf "[ERROR] Freespace: Not enough space (${BackupSize}k) in ${BackupDir}\n" | tee -a ${LogFile}
     ErrorFlag=32
 else
   ## Copy archives to remote folder to be pulled by remote server.
-  echo "-- Duplicating archives to ${RemoteDir}" >> ${LogFile}
+  printf "## Duplicating archives to ${RemoteDir}\n" >> ${LogFile}
   cp --preserve=all ${WorkingDir}/*.enc ${RemoteDir}/.
   cp --preserve=all ${WorkingDir}/*.sha512 ${RemoteDir}/.
   ## Move archives to local storage.
-  echo "-- Moving archives to ${TargetDir}" >> ${LogFile}
+  printf "## Moving archives to ${TargetDir}\n" >> ${LogFile}
   mv ${WorkingDir}/*.enc ${TargetDir}/.
   mv ${WorkingDir}/*.sha512 ${TargetDir}/.
 fi
@@ -443,9 +450,9 @@ ElapsedTime=$((${ElapsedTime} - ${Hours} * 3600))
 Minutes=$((${ElapsedTime} / 60))
 Seconds=$((${ElapsedTime} - ${Minutes} * 60))
 
-echo "-- Total backup time: ${Hours} hour(s) ${Minutes} minute(s) ${Seconds} second(s)" >> ${LogFile}
+printf "## Total backup time: ${Hours} hour(s) ${Minutes} minute(s) ${Seconds} second(s)\n" >> ${LogFile}
 
-echo "`date +%Y-%m-%d_%H:%M:%S` - ${Title} completed." >> ${LogFile}
+printf "`date +%Y-%m-%d_%H:%M:%S` - ${Title} completed.\n" >> ${LogFile}
 
 ## Perform cleanup routine.
 f_cleanup

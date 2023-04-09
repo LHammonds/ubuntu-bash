@@ -1,11 +1,12 @@
 #!/bin/bash
 #############################################################
 ## Name          : check-storage.sh
-## Version       : 1.2
-## Date          : 2017-03-17
+## Version       : 1.3
+## Date          : 2022-05-31
 ## Author        : LHammonds
-## Purpose       : Check available space for a file system and expand if necessary.
-## Compatibility : Verified on Ubuntu Server 12.04 - 20.04 LTS
+## Purpose       : Check available space for a file system and
+##                 expand if necessary.
+## Compatibility : Verified on Ubuntu Server 22.04 LTS
 ## Requirements  : None
 ## Run Frequency : Recommend once per day for each FS to monitor.
 ## Parameters    :
@@ -20,12 +21,13 @@
 ##    8 = ERROR: Resize2fs error
 ##   16 = SEVERE: No room to expand
 ##   32 = ERROR: Script not run by root user
-######################## CHANGE LOG #########################
+###################### CHANGE LOG ###########################
 ## DATE       VER WHO WHAT WAS CHANGED
 ## ---------- --- --- ---------------------------------------
 ## 2012-05-11 1.0 LTH Created script.
-## 2014-04-19 1.1 LTH Added company prefix to log files.
-## 2017-03-17 1.2 LTH Changed variables to CamelCase.
+## 2013-03-11 1.1 LTH Added company prefix to logs.
+## 2017-03-17 1.2 LTH Adjusted variable casing.
+## 2022-05-31 1.3 LTH Replaced echo statements with printf.
 #############################################################
 
 ## Import standard variables and functions. ##
